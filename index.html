@@ -426,19 +426,25 @@
             <section class="glass-effect p-6 neon-border">
                 <h2 class="text-2xl font-bold text-white mb-6">حاسبة غرامات التأخير</h2>
                 <form id="lateFeeForm" class="space-y-6">
-                    <!-- Entity Type -->
-                    <div class="flex justify-center space-x-4">
-                        <div class="w-1/2">
+                    <!-- Entity Type and Payment Date -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
                             <label class="block text-white mb-2">المنشأة</label>
                             <select id="lateEntityType" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d">
                                 <option value="individual">فرد</option>
                                 <option value="company">شركة</option>
                             </select>
                         </div>
-                        <div class="w-1/2">
+                        <div>
                             <label class="block text-white mb-2">تاريخ السداد النهائي</label>
                             <input type="date" id="finalPaymentDate" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d">
                         </div>
+                    </div>
+
+                    <!-- Amount Field -->
+                    <div>
+                        <label class="block text-white mb-2">المبلغ المستحق</label>
+                        <input type="number" id="lateFeeAmount" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المبلغ المستحق">
                     </div>
 
                     <div class="flex justify-center pt-4">
@@ -484,17 +490,31 @@
             <section class="glass-effect p-6 neon-border">
                 <h2 class="text-2xl font-bold text-white mb-6">حساب التأمينات</h2>
                 <form id="insuranceForm" class="space-y-6">
+                    <!-- Sector Type -->
+                    <div>
+                        <label class="block text-white mb-2">نوع القطاع</label>
+                        <select id="sectorType" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d">
+                            <option value="private">خاص</option>
+                            <option value="government">حكومي</option>
+                            <option value="public">قطاع عام</option>
+                        </select>
+                    </div>
+
+                    <!-- Monthly Salary -->
                     <div>
                         <label class="block text-white mb-2">الراتب الشهري</label>
                         <input type="number" id="monthlySalary" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل الراتب الشهري">
+                        <p class="text-gray-400 text-sm mt-1">الحد الأدنى: 1,400 جنيه - الحد الأقصى: 9,400 جنيه</p>
                     </div>
 
+                    <!-- Year Selection -->
                     <div>
                         <label class="block text-white mb-2">السنة</label>
                         <select id="insuranceYear" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d">
                         </select>
                     </div>
 
+                    <!-- Calculate Button -->
                     <button type="button" onclick="calculateInsurance()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-blue-700 transition duration-300">
                         حساب التأمينات
                     </button>
@@ -533,7 +553,62 @@
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="mt-8 p-4 bg-gray-900 text-white text-center">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+            <span>Designed by: Ahmed Mostafa Ibrahim</span>
+            <span>📞 01225155329</span>
+            <span>📧 a12345.mostafa@gmail.com</span>
+        </div>
+    </footer>
+
     <script>
+        // Insurance Calculator Functions
+        function calculateInsurance() {
+            const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+            const sectorType = document.getElementById('sectorType').value;
+            
+            if (monthlySalary <= 0) {
+                alert('يرجى إدخال راتب شهري صحيح');
+                return;
+            }
+
+            // Calculate employer and employee shares based on sector
+            let employerRate;
+            switch(sectorType) {
+                case 'government':
+                    employerRate = 0.15; // 15% for government sector
+                    break;
+                case 'public':
+                    employerRate = 0.20; // 20% for public sector
+                    break;
+                default:
+                    employerRate = 0.185; // 18.5% for private sector
+            }
+
+            const employeeRate = 0.11; // 11% for employee
+            
+            // Apply salary limits
+            const minSalary = 1400;
+            const maxSalary = 9400;
+            const insurableSalary = Math.min(Math.max(monthlySalary, minSalary), maxSalary);
+
+            // Calculate monthly shares
+            const employeeMonthly = insurableSalary * employeeRate;
+            const employerMonthly = insurableSalary * employerRate;
+
+            // Calculate annual values
+            const employeeAnnual = employeeMonthly * 12;
+            const employerAnnual = employerMonthly * 12;
+            const totalAnnual = employeeAnnual + employerAnnual;
+
+            // Update results
+            document.getElementById('employeeMonthlyShare').textContent = Math.round(employeeMonthly).toLocaleString('ar-EG') + ' جنيه';
+            document.getElementById('employeeAnnualShare').textContent = Math.round(employeeAnnual).toLocaleString('ar-EG') + ' جنيه';
+            document.getElementById('companyMonthlyShare').textContent = Math.round(employerMonthly).toLocaleString('ar-EG') + ' جنيه';
+            document.getElementById('companyAnnualShare').textContent = Math.round(employerAnnual).toLocaleString('ar-EG') + ' جنيه';
+            document.getElementById('totalInsurance').textContent = Math.round(totalAnnual).toLocaleString('ar-EG') + ' جنيه';
+        }
         // Initialize year dropdowns
         function initializeYearDropdowns() {
             const currentYear = new Date().getFullYear();
@@ -602,59 +677,134 @@
             return turnover * 0.01; // 1% for any amount above 10M
         }
 
-        // Calculate Income Tax for Sole Proprietorship
+        // Calculate Corporate Tax (Fixed 22.5%)
+        function calculateCorporateTax(netProfit) {
+            return netProfit * 0.225; // Fixed 22.5% rate for corporations, no exemptions
+        }
+
+        // Calculate Sole Proprietorship Tax with updated thresholds
         function calculateSoleProprietorshipTax(netProfit, businessVolume) {
             let tax = 0;
             let exemption = 0;
-            let taxableIncome = netProfit;
 
-            // Apply exemption if eligible (only for business volume <= 600,000)
+            // Apply exemption only if business volume is less than 600,000
             if (businessVolume <= 600000) {
                 exemption = 20000;
-                taxableIncome = Math.max(0, netProfit - exemption);
+                netProfit = Math.max(0, netProfit - exemption);
             }
 
-            // Determine tax calculation based on business volume
+            // Determine starting tax bracket based on business volume
             if (businessVolume <= 600000) {
-                // Progressive taxation with full brackets
-                if (taxableIncome <= 40000) {
-                    tax = 0;
-                } else if (taxableIncome <= 55000) {
-                    tax = (taxableIncome - 40000) * 0.10;
-                } else if (taxableIncome <= 70000) {
-                    tax = (55000 - 40000) * 0.10 +
-                          (taxableIncome - 55000) * 0.15;
-                } else if (taxableIncome <= 200000) {
-                    tax = (55000 - 40000) * 0.10 +
-                          (70000 - 55000) * 0.15 +
-                          (taxableIncome - 70000) * 0.20;
-                } else if (taxableIncome <= 400000) {
-                    tax = (55000 - 40000) * 0.10 +
-                          (70000 - 55000) * 0.15 +
-                          (200000 - 70000) * 0.20 +
-                          (taxableIncome - 200000) * 0.225;
-                } else {
-                    tax = (55000 - 40000) * 0.10 +
-                          (70000 - 55000) * 0.15 +
-                          (200000 - 70000) * 0.20 +
-                          (400000 - 200000) * 0.225 +
-                          (taxableIncome - 400000) * 0.25;
-                }
+                // Start from 0% (progressive brackets)
+                if (netProfit <= 20000) return 0;
+                if (netProfit <= 30000) return (netProfit - 20000) * 0.10;
+                if (netProfit <= 45000) return (30000 - 20000) * 0.10 + (netProfit - 30000) * 0.15;
+                if (netProfit <= 60000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (netProfit - 45000) * 0.20;
+                if (netProfit <= 200000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (netProfit - 60000) * 0.225;
+                if (netProfit <= 400000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (200000 - 60000) * 0.225 + (netProfit - 200000) * 0.25;
+                if (netProfit <= 1000000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (200000 - 60000) * 0.225 + (400000 - 200000) * 0.25 + (netProfit - 400000) * 0.275;
+                return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (200000 - 60000) * 0.225 + (400000 - 200000) * 0.25 + (1000000 - 400000) * 0.275 + (netProfit - 1000000) * 0.30;
             } else if (businessVolume <= 700000) {
-                // Start from 10% bracket
-                tax = taxableIncome * 0.10;
+                tax = netProfit * 0.10; // Start from 10%
             } else if (businessVolume <= 800000) {
-                // Start from 15% bracket
-                tax = taxableIncome * 0.15;
+                tax = netProfit * 0.15; // Start from 15%
             } else if (businessVolume <= 900000) {
-                // Start from 20% bracket
-                tax = taxableIncome * 0.20;
+                tax = netProfit * 0.20; // Start from 20%
             } else {
-                // Start from 22.5% bracket
-                tax = taxableIncome * 0.225;
+                tax = netProfit * 0.225; // Start from 22.5%
             }
 
             return { tax, exemption };
+        }
+
+        // Calculate Business Earnings Tax
+        function calculateBusinessEarnings(e) {
+            e.preventDefault();
+            try {
+                const monthlySalary = parseFloat(document.getElementById('monthlySalaryBusiness').value) || 0;
+                const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+                const calculateInsurance = document.getElementById('calculateInsuranceBusiness').checked;
+
+                // Calculate annual income
+                const annualIncome = monthlySalary * 12;
+
+                // Calculate insurance (11% of salary, capped between 1,400 and 9,400)
+                let monthlyInsurance = 0;
+                if (calculateInsurance) {
+                    const minSalary = 1400;
+                    const maxSalary = 9400;
+                    const insurableSalary = Math.min(Math.max(monthlySalary, minSalary), maxSalary);
+                    monthlyInsurance = insurableSalary * 0.11;
+                }
+
+                // Calculate annual values
+                const annualInsurance = monthlyInsurance * 12;
+                const annualDeductions = deductions * 12;
+                const monthlyTotal = monthlyInsurance + deductions;
+                const annualTotal = monthlyTotal * 12;
+
+                // Calculate taxable income
+                const personalExemption = 20000;
+                let taxableIncome = annualIncome - annualInsurance - personalExemption;
+
+                // Additional exemption for income < 60,000
+                if (annualIncome - annualInsurance < 60000) {
+                    taxableIncome -= 9000;
+                }
+
+                // Calculate tax using progressive brackets
+                let tax = 0;
+                if (taxableIncome > 0) {
+                    if (taxableIncome > 1000000) {
+                        tax += (taxableIncome - 1000000) * 0.30;
+                        taxableIncome = 1000000;
+                    }
+                    if (taxableIncome > 400000) {
+                        tax += (taxableIncome - 400000) * 0.275;
+                        taxableIncome = 400000;
+                    }
+                    if (taxableIncome > 200000) {
+                        tax += (taxableIncome - 200000) * 0.25;
+                        taxableIncome = 200000;
+                    }
+                    if (taxableIncome > 60000) {
+                        tax += (taxableIncome - 60000) * 0.225;
+                        taxableIncome = 60000;
+                    }
+                    if (taxableIncome > 45000) {
+                        tax += (taxableIncome - 45000) * 0.20;
+                        taxableIncome = 45000;
+                    }
+                    if (taxableIncome > 30000) {
+                        tax += (taxableIncome - 30000) * 0.15;
+                        taxableIncome = 30000;
+                    }
+                    if (taxableIncome > 20000) {
+                        tax += (taxableIncome - 20000) * 0.10;
+                    }
+                }
+
+                // Calculate net income after tax
+                const netAfterTax = annualIncome - annualTotal - tax;
+
+                // Update results
+                updateBusinessResults({
+                    monthlyInsurance,
+                    monthlyDeductions: deductions,
+                    monthlyTotal,
+                    annualInsurance,
+                    annualDeductions,
+                    annualTotal,
+                    personalExemption,
+                    taxBase: annualIncome - annualInsurance - personalExemption,
+                    tax,
+                    net: netAfterTax
+                });
+
+            } catch (error) {
+                console.error('Error in calculation:', error);
+                alert('حدث خطأ في الحساب. يرجى التحقق من المدخلات');
+            }
         }
 
         // Calculate Corporate Tax
@@ -1034,14 +1184,49 @@
             e?.preventDefault();
             const entityType = document.getElementById('lateEntityType').value;
             const finalPaymentDate = new Date(document.getElementById('finalPaymentDate').value);
+            const amount = parseFloat(document.getElementById('lateFeeAmount').value) || 0;
             const excludeFractions = document.getElementById('excludeFractions').checked;
+
+            if (amount <= 0) {
+                alert('يرجى إدخال مبلغ صحيح');
+                return;
+            }
 
             // Calculate late fees based on entity type
             const startDate = new Date(finalPaymentDate.getFullYear(), entityType === 'individual' ? 3 : 4, 1); // April 1 or May 1
             const months = monthsDifference(startDate, finalPaymentDate);
-            const lateFee = excludeFractions ? Math.floor(months) : months;
+            const monthCount = excludeFractions ? Math.floor(months) : months;
+            
+            // Calculate late fee (2% per month)
+            const lateFee = amount * (0.02 * monthCount);
 
-            return lateFee;
+            // Update results
+            const results = document.getElementById('lateFeeResults');
+            results.innerHTML = `
+                <div class="text-center text-white">
+                    <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg mb-4">
+                        <h3 class="text-xl font-bold mb-4">نتائج حساب غرامات التأخير</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-gray-400">المبلغ الأصلي</p>
+                                <p class="text-2xl font-bold text-blue-400 neon-text">${Math.round(amount).toLocaleString('ar-EG')} جنيه</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">عدد الشهور</p>
+                                <p class="text-2xl font-bold text-blue-400 neon-text">${monthCount}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">غرامة التأخير</p>
+                                <p class="text-2xl font-bold text-blue-400 neon-text">${Math.round(lateFee).toLocaleString('ar-EG')} جنيه</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">إجمالي المستحق</p>
+                                <p class="text-2xl font-bold text-blue-400 neon-text">${Math.round(amount + lateFee).toLocaleString('ar-EG')} جنيه</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
         }
 
         // Helper function to calculate months difference
