@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة الضرائب والتأمينات المصرية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(to bottom right, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            color: white;
+        }
+        .calculator-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .input-field {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .input-field:focus {
+            border-color: #4f46e5;
+            outline: none;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container mx-auto max-w-4xl">
+        <h1 class="text-4xl font-bold text-center mb-8">حاسبة الضرائب والتأمينات المصرية</h1>
+        
+        <!-- Job Gain Calculator -->
+        <div class="calculator-container p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6">حاسبة كسب العمل</h2>
+            <form id="jobGainForm" class="space-y-4">
+                <!-- Entity Type Selection -->
+                <div class="flex justify-between mb-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="entityType" value="individual" checked class="form-radio">
+                        <span class="ml-2">فرد (منشأة فردية)</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="entityType" value="company" class="form-radio">
+                        <span class="ml-2">شركة</span>
+                    </label>
+                </div>
+
+                <!-- Period Type Selection -->
+                <div class="flex justify-between mb-4">
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="periodType" value="monthly" checked class="form-radio">
+                        <span class="ml-2">إدخال قيم شهرية</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" name="periodType" value="annual" class="form-radio">
+                        <span class="ml-2">إدخال قيم سنوية</span>
+                    </label>
+                </div>
+
+                <!-- Annual Turnover -->
+                <div class="mb-4">
+                    <label class="block mb-2">حجم الأعمال السنوي</label>
+                    <input type="number" id="annualTurnover" class="input-field w-full p-2 rounded" required>
+                    <small class="text-gray-400">إجمالي الإيرادات السنوية</small>
+                </div>
+
+                <!-- Salary Input -->
+                <div class="mb-4">
+                    <label class="block mb-2">الأجر الشهري</label>
+                    <input type="number" id="monthlySalary" class="input-field w-full p-2 rounded" required>
+                </div>
+
+                <!-- Deductions -->
+                <div class="mb-4">
+                    <label class="block mb-2">الاشتراكات والخصومات</label>
+                    <input type="number" id="deductions" class="input-field w-full p-2 rounded">
+                    <small class="text-gray-400">الاشتراكات، الخصومات، التخفيضات</small>
+                </div>
+
+                <!-- Exempt Allowances -->
+                <div class="mb-4">
+                    <label class="block mb-2">البدلات المعفاة (شهري)</label>
+                    <input type="number" id="exemptAllowances" class="input-field w-full p-2 rounded">
+                    <small class="text-gray-400">البدلات المعفاة من التأمين، بحد أقصى 30% من قيمة الاشتراك</small>
+                </div>
+
+                <div class="flex gap-4">
+                    <button type="submit" id="jobGainSubmit" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 relative flex items-center justify-center">
+                        <span class="flex items-center gap-2">
+                            حساب كسب العمل
+                            <span class="loading-spinner hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </span>
+                    </button>
+                    <button type="button" id="jobGainReset" onclick="resetJobGainForm()" class="bg-gray-600 text-white w-14 h-14 rounded-lg hover:bg-gray-700 hover:scale-105 active:scale-95 active:bg-gray-800 transition-all duration-300 flex items-center justify-center group relative" title="إعادة تعيين النموذج">
+                        <i class="fas fa-redo-alt text-lg group-hover:rotate-180 transition-transform duration-500"></i>
+                        <span class="absolute -top-12 right-1/2 transform translate-x-1/2 bg-gray-800 text-white text-sm py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap scale-95 group-hover:scale-100">
+                            إعادة تعيين
+                            <span class="absolute bottom-0 right-1/2 transform translate-x-1/2 translate-y-full border-4 border-transparent border-t-gray-800"></span>
+                        </span>
+                    </button>
+                </div>
+            </form>
+            <!-- Job Gain Results -->
+            <div id="jobGainResults" class="mt-8 hidden">
+                <h3 class="text-2xl font-bold mb-6 text-center">النتائج</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="calculator-container p-6 transform transition-all duration-500">
+                        <div class="text-center mb-4">
+                            <h4 class="text-xl font-bold mb-1">النتائج الشهرية</h4>
+                            <div class="h-1 w-20 bg-blue-500 mx-auto rounded"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="space-y-4">
+                                <div>
+                                    <div class="text-sm text-gray-300 mb-2">حجم الأعمال السنوي:</div>
+                                    <div class="bg-gray-800 bg-opacity-50 p-3 rounded">
+                                        <div class="text-xl font-bold text-center" id="annualTurnoverDisplay">0</div>
+                                        <div class="text-sm text-center text-gray-400 mt-1" id="turnoverTaxDisplay">0</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="text-sm text-gray-300 mb-2">الدخل السنوي:</div>
+                                    <div class="bg-gray-800 bg-opacity-50 p-3 rounded">
+                                        <div class="text-xl font-bold text-center" id="annualIncomeDisplay">0</div>
+                                        <div class="text-sm text-center text-gray-400 mt-1" id="taxTypeDisplay"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-t border-gray-700 my-4 pt-4">
+                                <div class="text-sm text-gray-300 mb-2">شرائح الضريبة:</div>
+                                <div id="taxBrackets" class="space-y-2 text-sm">
+                                    <!-- Tax brackets will be added here -->
+                                </div>
+                            </div>
+                            <div class="bg-gray-800 bg-opacity-50 p-3 rounded mt-4">
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <div class="text-gray-400">الدخل الخاضع للضريبة:</div>
+                                        <div id="taxableIncome" class="font-bold">0</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-gray-400">إجمالي الضريبة السنوية:</div>
+                                        <div id="totalTaxAmount" class="font-bold text-blue-400">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center mt-4 pt-4 border-t border-gray-700">
+                                <div>
+                                    <div class="text-gray-300 mb-1">التأمين الشهري:</div>
+                                    <div id="monthlyInsurance" class="text-lg font-bold">0</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-300 mb-1">الضريبة الشهرية:</div>
+                                    <div id="monthlyDeductions" class="text-lg font-bold">0</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-300 mb-1">الإجمالي الشهري:</div>
+                                    <div id="monthlyTotal" class="text-xl font-bold text-blue-400">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="calculator-container p-6 transform transition-all duration-500">
+                        <div class="text-center mb-4">
+                            <h4 class="text-xl font-bold mb-1">النتائج السنوية</h4>
+                            <div class="h-1 w-20 bg-green-500 mx-auto rounded"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">التأمين:</span>
+                                <span id="annualInsurance" class="text-lg font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">الخصومات:</span>
+                                <span id="annualDeductions" class="text-lg font-bold">0</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-gray-700">
+                                <span class="text-gray-300">الإجمالي:</span>
+                                <span id="annualTotal" class="text-xl font-bold text-green-400">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Tax Calculator -->
+        <div class="calculator-container p-6 mb-8">
+            <h2 class="text-2xl font-bold mb-6 text-center">حساب فائدة فرق فحص ضريبة القيمة المضافة</h2>
+            <form id="additionalTaxForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2">الفترة الضريبية</label>
+                        <input type="date" id="taxPeriod" class="input-field w-full p-2 rounded" value="2016-09-01">
+                    </div>
+                    <div>
+                        <label class="block mb-2">المبلغ</label>
+                        <input type="number" id="taxAmount" class="input-field w-full p-2 rounded">
+                    </div>
+                    <div>
+                        <label class="block mb-2">تاريخ الإخطار من المأمورية</label>
+                        <input type="date" id="notificationDate" class="input-field w-full p-2 rounded" value="2021-05-07">
+                    </div>
+                    <div>
+                        <label class="block mb-2">تاريخ السداد</label>
+                        <input type="date" id="paymentDate" class="input-field w-full p-2 rounded" value="2025-04-12">
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 w-full">
+                    حساب
+                </button>
+            </form>
+            <!-- Additional Tax Results -->
+            <div id="additionalTaxResults" class="mt-6 hidden">
+                <h3 class="text-xl font-bold mb-4">النتائج</h3>
+                <div class="space-y-4">
+                    <!-- First Period -->
+                    <div class="calculator-container p-4">
+                        <div class="text-center mb-4 bg-blue-900 bg-opacity-50 p-2 rounded">
+                            1.5% عن كل شهر، بحد أقصى 36 شهر (3 سنوات)
+                        </div>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="text-sm">بداية الحساب</div>
+                                <div id="calculationStart" class="font-bold">-</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm">تاريخ الإخطار</div>
+                                <div id="notificationDateResult" class="font-bold">-</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm">عدد الشهور</div>
+                                <div id="monthsCount1" class="font-bold">0</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm">الغرامة</div>
+                                <div id="penalty1" class="font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Second Period -->
+                    <div class="calculator-container p-4">
+                        <div class="text-center mb-4 bg-blue-900 bg-opacity-50 p-2 rounded">
+                            1.5% عن كل شهر من تاريخ الإخطار حتى تاريخ السداد
+                        </div>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="text-sm">تاريخ الإخطار</div>
+                                <div id="notificationDateResult2" class="font-bold">-</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm">تاريخ السداد</div>
+                                <div id="paymentDateResult" class="font-bold">-</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm">عدد الشهور</div>
+                                <div id="monthsCount2" class="font-bold">0</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-sm">الغرامة</div>
+                                <div id="penalty2" class="font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="calculator-container p-4">
+                        <div class="grid grid-cols-4">
+                            <div class="col-span-3"></div>
+                            <div class="text-center">
+                                <div class="text-sm">الإجمالي</div>
+                                <div id="totalPenalty" class="font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Late Fee Calculator -->
+        <div class="calculator-container p-6">
+            <h2 class="text-2xl font-bold mb-6">حاسبة غرامات التأخير</h2>
+            <form id="lateFeeForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2">المنشأة</label>
+                        <select id="entityType" class="input-field w-full p-2 rounded">
+                            <option value="individual">فرد</option>
+                            <option value="company">شركة</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block mb-2">تاريخ السداد النهائي</label>
+                        <input type="date" id="finalPaymentDate" class="input-field w-full p-2 rounded">
+                    </div>
+                </div>
+
+                <div class="flex justify-center space-x-4">
+                    <button type="button" onclick="addTaxDifference()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        <i class="fas fa-plus"></i> إضافة فرق ضريبي
+                    </button>
+                    <button type="button" onclick="addPayment()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                        <i class="fas fa-plus"></i> إضافة سداد
+                    </button>
+                </div>
+
+                <div class="flex items-center justify-center">
+                    <label class="inline-flex items-center">
+                        <input type="checkbox" id="excludeFractions" checked class="form-checkbox">
+                        <span class="ml-2">استبعاد كسر الشهر والجنيه</span>
+                    </label>
+                </div>
+
+                <div class="flex space-x-4 mt-4">
+                    <button type="submit" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
+                        حساب الغرامات
+                    </button>
+                    <button type="button" onclick="resetLateFeeCalculator()" class="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition duration-300">
+                        إعادة تعيين
+                    </button>
+                </div>
+            </form>
+
+            <!-- Late Fee Results -->
+            <div id="lateFeeResults" class="mt-6 hidden">
+                <h3 class="text-xl font-bold mb-4">النتائج</h3>
+                <div class="calculator-container p-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-sm">نوع المنشأة</div>
+                            <div id="entityTypeResult" class="font-bold">-</div>
+                        </div>
+                        <div>
+                            <div class="text-sm">تاريخ بداية الحساب</div>
+                            <div id="startDateResult" class="font-bold">-</div>
+                        </div>
+                        <div>
+                            <div class="text-sm">عدد الشهور</div>
+                            <div id="monthsCountResult" class="font-bold">0</div>
+                        </div>
+                        <div>
+                            <div class="text-sm">نسبة الغرامة</div>
+                            <div id="penaltyRateResult" class="font-bold">0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Penalty -->
+                <div class="mt-4 p-4 bg-blue-900 bg-opacity-50 rounded">
+                    <div class="flex justify-between items-center">
+                        <div class="text-lg">إجمالي الغرامات</div>
+                        <div id="totalPenaltyAmount" class="text-xl font-bold">0 جنيه</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tax Differences Container -->
+            <div id="taxDifferencesContainer" class="mt-6 space-y-4">
+                <!-- Tax differences will be added here -->
+            </div>
+
+            <!-- Detailed Results -->
+            <div id="detailedResults" class="mt-6 hidden">
+                <h3 class="text-xl font-bold mb-4">تفاصيل الحساب</h3>
+                <div id="calculationDetails" class="space-y-4">
+                    <!-- Calculation details will be added here -->
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="mt-8 text-center">
+                <p class="mb-4">أضف فرق فحص الضريبة الصافي عن فترة ضريبية معينة أو عملية سداد.</p>
+                <ul class="text-sm space-y-2 text-gray-300">
+                    <li>- يتم حساب فائدة فرق الضريبة العام حتى تاريخ السداد النهائي</li>
+                    <li>- يبدأ حساب الغرامة من 1 أبريل للأفراد و1 مايو للشركات</li>
+                    <li>- يمكن إضافة أكثر من فرق ضريبي أو عملية سداد</li>
+                    <li>- يتم استبعاد كسر الشهر والجنيه (طبقاً للقانون)</li>
+                    <li>- عملية السداد تغطي فرق الضريبة أولاً ثم الغرامة</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to calculate months difference
+        function monthsDifference(date1, date2) {
+            const years = date2.getFullYear() - date1.getFullYear();
+            const months = date2.getMonth() - date1.getMonth();
+            return years * 12 + months;
+        }
+
+        // Job Gain Calculator
+        document.getElementById('jobGainForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const salary = parseFloat(document.getElementById('monthlySalary').value) || 0;
+            const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+            const exemptAllowances = parseFloat(document.getElementById('exemptAllowances').value) || 0;
+            const isPeriodMonthly = document.querySelector('input[name="periodType"]:checked').value === 'monthly';
+            
+            // Calculate tax based on annual turnover (Article 3 of Law No. 30 of 2023)
+            function calculateTurnoverTax(turnover) {
+                if (turnover < 250000) return 1000;
+                if (turnover < 500000) return 2500;
+                if (turnover < 1000000) return 5000;
+                if (turnover < 2000000) return turnover * 0.005;
+                if (turnover < 3000000) return turnover * 0.0075;
+                if (turnover <= 10000000) return turnover * 0.01;
+                return turnover * 0.01; // For amounts over 10M
+            }
+
+            // Calculate tax brackets for sole proprietorships
+            function calculateTax(income, isCompany = false) {
+                let tax = 0;
+                let remaining = income;
+                let brackets = [];
+                
+                if (isCompany) {
+                    // Corporate tax rate is flat 22.5%
+                    const corporateTax = income * 0.225;
+                    brackets.push({
+                        amount: income,
+                        rate: 22.5,
+                        tax: corporateTax,
+                        net: income - corporateTax
+                    });
+                    return {
+                        brackets,
+                        totalTax: corporateTax,
+                        totalNet: income - corporateTax,
+                        exemption: 0
+                    };
+                }
+
+                // Sole proprietorship tax calculation
+                let exemption = income <= 600000 ? 20000 : 0;
+                remaining = Math.max(0, income - exemption);
+
+                // Define tax brackets based on business volume
+                const brackets_config = [
+                    { threshold: 600000, rate: 0 },
+                    { threshold: 700000, rate: 10 },
+                    { threshold: 800000, rate: 15 },
+                    { threshold: 900000, rate: 20 },
+                    { threshold: Infinity, rate: 22.5 }
+                ];
+
+                // Find applicable tax rate based on total income
+                let applicableRate = 22.5; // Default highest rate
+                for (const bracket of brackets_config) {
+                    if (income <= bracket.threshold) {
+                        applicableRate = bracket.rate;
+                        break;
+                    }
+                }
+
+                // Apply the single applicable rate to taxable income
+                const taxAmount = remaining * (applicableRate / 100);
+                brackets.push({
+                    amount: remaining,
+                    rate: applicableRate,
+                    tax: taxAmount,
+                    net: remaining - taxAmount
+                });
+
+                if (exemption > 0) {
+                    brackets.unshift({
+                        amount: exemption,
+                        rate: 0,
+                        tax: 0,
+                        net: exemption
+                    });
+                }
+
+                return {
+                    brackets,
+                    totalTax: taxAmount,
+                    totalNet: income - taxAmount,
+                    exemption: exemption
+                };
+            }
+
+            // Get entity type and turnover
+            const isCompany = document.querySelector('input[name="entityType"]:checked').value === 'company';
+            const annualTurnover = parseFloat(document.getElementById('annualTurnover').value) || 0;
+
+            // Calculate monthly values
+            const monthlyValues = {
+                salary: isPeriodMonthly ? salary : salary / 12,
+                deductions: isPeriodMonthly ? deductions : deductions / 12,
+                exemptAllowances: isPeriodMonthly ? exemptAllowances : exemptAllowances / 12
+            };
+
+            // Calculate insurance (11% of salary)
+            const insuranceBase = Math.min(Math.max(monthlyValues.salary, 1400), 9400);
+            const monthlyInsurance = insuranceBase * 0.11;
+
+            // Calculate annual income and taxes
+            const annualIncome = monthlyValues.salary * 12;
+            const taxResult = calculateTax(annualIncome, isCompany);
+            const turnoverTax = calculateTurnoverTax(annualTurnover);
+            
+            // Calculate monthly tax (including turnover tax)
+            const monthlyTax = (taxResult.totalTax + turnoverTax) / 12;
+
+            // Calculate totals
+            const monthlyTotal = monthlyInsurance + monthlyTax;
+            const annualTotal = monthlyTotal * 12;
+
+            // Format tax breakdown message
+            const taxBreakdown = isCompany ? 
+                `ضريبة الشركات (22.5%)` :
+                `ضريبة الأفراد (${taxResult.brackets[0].rate}%) ${taxResult.exemption > 0 ? '- مع إعفاء 20,000 جنيه' : ''}`;
+
+            // Show loading state
+            const submitButton = document.getElementById('jobGainSubmit');
+            const loadingSpinner = submitButton.querySelector('.loading-spinner');
+            submitButton.disabled = true;
+            loadingSpinner.classList.remove('hidden');
+
+            // Simulate calculation delay for better UX
+            setTimeout(() => {
+                // Show results section
+                const resultsSection = document.getElementById('jobGainResults');
+                resultsSection.classList.remove('hidden');
+                
+                // Format currency
+                const formatCurrency = (amount) => amount.toFixed(2) + ' جنيه';
+                
+                // Update results with animation
+                const updateWithAnimation = (elementId, value) => {
+                    const element = document.getElementById(elementId);
+                    element.style.opacity = '0';
+                    element.style.transform = 'translateY(10px)';
+                    element.textContent = value;
+                    
+                    requestAnimationFrame(() => {
+                        element.style.transition = 'all 0.5s ease';
+                        element.style.opacity = '1';
+                        element.style.transform = 'translateY(0)';
+                    });
+                };
+
+                // Update annual turnover and income displays
+                updateWithAnimation('annualTurnoverDisplay', formatCurrency(annualTurnover));
+                updateWithAnimation('turnoverTaxDisplay', `ضريبة حجم الأعمال: ${formatCurrency(turnoverTax)}`);
+                updateWithAnimation('annualIncomeDisplay', formatCurrency(annualIncome));
+                updateWithAnimation('taxTypeDisplay', taxBreakdown);
+                updateWithAnimation('taxableIncome', formatCurrency(annualIncome - taxResult.exemption));
+                updateWithAnimation('totalTaxAmount', formatCurrency(taxResult.totalTax + turnoverTax));
+
+                // Update tax brackets display
+                const taxBracketsContainer = document.getElementById('taxBrackets');
+                taxBracketsContainer.innerHTML = '';
+
+                // Different display for companies vs individuals
+                if (isCompany) {
+                    // Create company tax bracket display
+                    const bracketDiv = document.createElement('div');
+                    bracketDiv.className = 'space-y-2 p-3 rounded transition-all duration-300 hover:bg-gray-700 group relative';
+                    bracketDiv.style.opacity = '0';
+                    bracketDiv.style.transform = 'translateY(10px)';
+                    
+                    // Company tax display HTML
+                    bracketDiv.innerHTML = `
+                        <div class="flex justify-between items-center text-gray-300">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-blue-400 group-hover:scale-150 transition-transform duration-300"></div>
+                                <span>ضريبة الشركات (22.5%)</span>
+                            </div>
+                            <span class="text-sm opacity-75">100% من الدخل</span>
+                        </div>
+                        <div class="relative h-3 bg-gray-700 rounded-full overflow-hidden group-hover:h-4 transition-all duration-300">
+                            <div class="absolute top-0 left-0 h-full bg-blue-400 transition-all duration-1000 opacity-75 group-hover:opacity-100" 
+                                 style="width: 0%"></div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-4">
+                                <span class="text-blue-400 font-bold">${formatCurrency(annualIncome)}</span>
+                                <div class="flex flex-col items-center opacity-75">
+                                    <i class="fas fa-arrow-down text-xs"></i>
+                                    <span class="text-xs">22.5%</span>
+                                </div>
+                                <span class="font-bold text-blue-400">${formatCurrency(taxResult.totalNet)}</span>
+                            </div>
+                            <span class="text-sm text-gray-400">${formatCurrency(taxResult.totalTax)}</span>
+                        </div>
+                    `;
+                    
+                    taxBracketsContainer.appendChild(bracketDiv);
+                    
+                    // Add turnover tax info
+                    const turnoverDiv = document.createElement('div');
+                    turnoverDiv.className = 'mt-4 p-3 bg-gray-800 bg-opacity-50 rounded';
+                    turnoverDiv.innerHTML = `
+                        <div class="text-sm text-gray-300 mb-2">ضريبة حجم الأعمال:</div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-400">حجم الأعمال السنوي: ${formatCurrency(annualTurnover)}</span>
+                            <span class="text-blue-400 font-bold">${formatCurrency(turnoverTax)}</span>
+                        </div>
+                    `;
+                    taxBracketsContainer.appendChild(turnoverDiv);
+
+                    // Animate elements
+                    setTimeout(() => {
+                        bracketDiv.style.opacity = '1';
+                        bracketDiv.style.transform = 'translateY(0)';
+                        const progressBar = bracketDiv.querySelector('.bg-blue-400');
+                        progressBar.style.width = '100%';
+                    }, 200);
+                } else {
+                    // Individual tax brackets display
+                    taxResult.brackets.forEach((bracket, index) => {
+                        const bracketDiv = document.createElement('div');
+                        bracketDiv.className = 'space-y-2 p-3 rounded transition-all duration-300 hover:bg-gray-700 group relative';
+                        
+                        // Calculate percentage of total income and tax savings
+                        const percentOfTotal = (bracket.amount / annualIncome * 100).toFixed(1);
+                        const taxSavings = bracket.amount - bracket.net;
+
+                        // Create color classes based on index
+                        const colorClass = index === 0 ? 'green' : 'blue';
+                        const bgColorClass = 'bg-' + colorClass + '-400';
+                        const textColorClass = 'text-' + colorClass + '-400';
+                    
+                        bracketDiv.innerHTML = '<div class="flex justify-between items-center text-gray-300">' +
+                            '<div class="flex items-center gap-2">' +
+                                '<div class="w-2 h-2 rounded-full ' + bgColorClass + ' group-hover:scale-150 transition-transform duration-300"></div>' +
+                                '<span>شريحة ' + (index + 1) + ' (' + bracket.rate + '%)</span>' +
+                            '</div>' +
+                            '<span class="text-sm opacity-75">' + percentOfTotal + '% من الدخل</span>' +
+                        '</div>' +
+                        '<div class="relative h-3 bg-gray-700 rounded-full overflow-hidden group-hover:h-4 transition-all duration-300">' +
+                            '<div class="absolute top-0 left-0 h-full ' + bgColorClass + ' transition-all duration-1000 opacity-75 group-hover:opacity-100" style="width: 0%"></div>' +
+                        '</div>' +
+                        '<div class="flex justify-between items-center">' +
+                            '<div class="flex items-center gap-4">' +
+                                '<div class="relative group-hover:scale-105 transition-transform duration-300">' +
+                                    '<span class="' + textColorClass + ' font-bold">' + formatCurrency(bracket.amount) + '</span>' +
+                                    '<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">' +
+                                        'الدخل في هذه الشريحة' +
+                                        '<div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full border-4 border-transparent border-t-gray-800"></div>' +
+                                    '</div>' +
+                                '</div>' +
+                                '<div class="flex flex-col items-center opacity-75 group-hover:opacity-100 transition-opacity duration-300">' +
+                                    '<i class="fas fa-arrow-down text-xs transform group-hover:translate-y-1 transition-transform duration-300"></i>' +
+                                    '<span class="text-xs">' + bracket.rate + '%</span>' +
+                                '</div>' +
+                                '<div class="relative group-hover:scale-105 transition-transform duration-300">' +
+                                    '<span class="font-bold ' + textColorClass + '">' + formatCurrency(bracket.net) + '</span>' +
+                                    '<div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">' +
+                                        'بعد خصم الضريبة' +
+                                        '<div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-full border-4 border-transparent border-t-gray-800"></div>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="relative group-hover:scale-105 transition-transform duration-300">' +
+                                '<span class="text-sm text-gray-400">' + formatCurrency(taxSavings) + '</span>' +
+                                '<div class="absolute -top-8 right-0 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">' +
+                                    'مبلغ الضريبة' +
+                                    '<div class="absolute bottom-0 right-2 transform translate-y-full border-4 border-transparent border-t-gray-800"></div>' +
+                                '</div>' +
+                            '</div>' +
+                        '</div>';
+
+                        bracketDiv.style.opacity = '0';
+                        bracketDiv.style.transform = 'translateY(10px)';
+                        taxBracketsContainer.appendChild(bracketDiv);
+                        
+                        window.setTimeout(function() {
+                            bracketDiv.style.opacity = '1';
+                            bracketDiv.style.transform = 'translateY(0)';
+                            var progressBar = bracketDiv.querySelector('.bg-green-400, .bg-blue-400');
+                            if (progressBar) {
+                                progressBar.style.width = percentOfTotal + '%';
+                            }
+                        }, index * 200);
+                    });
+
+                    updateWithAnimation('monthlyInsurance', formatCurrency(monthlyInsurance));
+                    updateWithAnimation('monthlyDeductions', formatCurrency(monthlyTax));
+                    updateWithAnimation('monthlyTotal', formatCurrency(monthlyTotal));
+
+                    // Update annual results with delay
+                    setTimeout(() => {
+                        updateWithAnimation('annualInsurance', formatCurrency(monthlyInsurance * 12));
+                        updateWithAnimation('annualDeductions', formatCurrency(monthlyTax * 12));
+                        updateWithAnimation('annualTotal', formatCurrency(annualTotal));
+                    }, 200);
+
+                    // Scroll to results
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                // Reset button state
+                submitButton.disabled = false;
+                loadingSpinner.classList.add('hidden');
+            }, 500);
+        });
+
+        // Additional Tax Calculator
+        document.getElementById('additionalTaxForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const taxPeriod = new Date(document.getElementById('taxPeriod').value);
+            const amount = parseFloat(document.getElementById('taxAmount').value) || 0;
+            const notificationDate = new Date(document.getElementById('notificationDate').value);
+            const paymentDate = new Date(document.getElementById('paymentDate').value);
+
+            // Calculate first period (up to 36 months)
+            const calculationStart = new Date(taxPeriod);
+            calculationStart.setMonth(calculationStart.getMonth() + 3); // Start from 3 months after tax period
+            const months1 = Math.min(36, monthsDifference(calculationStart, notificationDate));
+            const penalty1 = amount * (0.015 * months1); // 1.5% per month
+
+            // Calculate second period
+            const months2 = monthsDifference(notificationDate, paymentDate);
+            const penalty2 = amount * (0.015 * months2); // 1.5% per month
+
+            // Show results section
+            document.getElementById('additionalTaxResults').classList.remove('hidden');
+
+            // Update first period results
+            document.getElementById('calculationStart').textContent = calculationStart.toLocaleDateString('ar-EG');
+            document.getElementById('notificationDateResult').textContent = notificationDate.toLocaleDateString('ar-EG');
+            document.getElementById('monthsCount1').textContent = months1;
+            document.getElementById('penalty1').textContent = penalty1.toFixed(2) + ' جنيه';
+
+            // Update second period results
+            document.getElementById('notificationDateResult2').textContent = notificationDate.toLocaleDateString('ar-EG');
+            document.getElementById('paymentDateResult').textContent = paymentDate.toLocaleDateString('ar-EG');
+            document.getElementById('monthsCount2').textContent = months2;
+            document.getElementById('penalty2').textContent = penalty2.toFixed(2) + ' جنيه';
+
+            // Update total
+            document.getElementById('totalPenalty').textContent = (penalty1 + penalty2).toFixed(2) + ' جنيه';
+        });
+
+        // Late Fee Calculator
+        document.getElementById('lateFeeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Validate required fields
+            const finalPaymentDate = document.getElementById('finalPaymentDate').value;
+            if (!finalPaymentDate) {
+                alert('يرجى تحديد تاريخ السداد النهائي');
+                return;
+            }
+
+            // Get all tax differences and validate
+            const taxDifferences = document.querySelectorAll('.tax-amount');
+            const taxDatesValid = Array.from(document.querySelectorAll('.tax-date')).every(input => input.value);
+            if (taxDifferences.length === 0) {
+                alert('يرجى إضافة فرق ضريبي واحد على الأقل');
+                return;
+            }
+            if (!taxDatesValid) {
+                alert('يرجى تحديد تاريخ لكل فرق ضريبي');
+                return;
+            }
+
+            // Calculate and display results
+            calculateTotalLateFees();
+
+            // Update basic info
+            const entityType = document.getElementById('entityType').value;
+            const startDate = new Date(new Date(finalPaymentDate).getFullYear(), 
+                                     entityType === 'individual' ? 3 : 4, 
+                                     1);
+
+            document.getElementById('entityTypeResult').textContent = entityType === 'individual' ? 'فرد' : 'شركة';
+            document.getElementById('startDateResult').textContent = startDate.toLocaleDateString('ar-EG');
+        });
+
+        // Add Tax Difference
+        function addTaxDifference() {
+            const container = document.createElement('div');
+            container.className = 'calculator-container p-4 mb-4';
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2">المبلغ</label>
+                        <input type="number" class="input-field w-full p-2 rounded tax-amount" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2">تاريخ الفترة</label>
+                        <input type="date" class="input-field w-full p-2 rounded tax-date" required>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <div class="text-sm text-gray-300">فرق ضريبي</div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-400">
+                        <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>
+            `;
+            document.getElementById('taxDifferencesContainer').appendChild(container);
+        }
+
+        // Add Payment
+        function addPayment() {
+            const container = document.createElement('div');
+            container.className = 'calculator-container p-4 mb-4';
+            container.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2">المبلغ المسدد</label>
+                        <input type="number" class="input-field w-full p-2 rounded payment-amount" required>
+                    </div>
+                    <div>
+                        <label class="block mb-2">تاريخ السداد</label>
+                        <input type="date" class="input-field w-full p-2 rounded payment-date" required>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-2">
+                    <div class="text-sm text-gray-300">عملية سداد</div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-400">
+                        <i class="fas fa-trash"></i> حذف
+                    </button>
+                </div>
+            `;
+            document.getElementById('taxDifferencesContainer').appendChild(container);
+        }
+
+        // Reset Job Gain Calculator form and results
+        function resetJobGainForm() {
+            // Add fade-out animation to results
+            const resultsSection = document.getElementById('jobGainResults');
+            if (!resultsSection.classList.contains('hidden')) {
+                // Fade out results
+                resultsSection.style.opacity = '0';
+                resultsSection.style.transform = 'translateY(-20px)';
+                resultsSection.style.transition = 'all 0.5s ease';
+                
+                // Hide results after animation
+                setTimeout(() => {
+                    resultsSection.classList.add('hidden');
+                    resultsSection.style.opacity = '';
+                    resultsSection.style.transform = '';
+                    resultsSection.style.transition = '';
+                    
+                    // Reset result values
+                    const resultElements = ['monthlyInsurance', 'monthlyDeductions', 'monthlyTotal', 
+                                         'annualInsurance', 'annualDeductions', 'annualTotal'];
+                    resultElements.forEach(id => {
+                        document.getElementById(id).textContent = '0 جنيه';
+                    });
+                }, 500);
+            }
+
+            // Add animation to form reset
+            const formInputs = document.querySelectorAll('#jobGainForm input, #jobGainForm select');
+            formInputs.forEach(input => {
+                input.style.transition = 'all 0.3s ease';
+                input.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                setTimeout(() => {
+                    input.style.backgroundColor = '';
+                    input.style.transition = '';
+                }, 300);
+            });
+
+            // Reset form inputs
+            document.getElementById('monthlySalary').value = '';
+            document.getElementById('deductions').value = '';
+            document.getElementById('exemptAllowances').value = '';
+            document.querySelector('input[name="periodType"][value="monthly"]').checked = true;
+            document.getElementById('facilityType').value = 'private';
+
+            // Focus on salary input with delay for smooth animation
+            setTimeout(() => {
+                document.getElementById('monthlySalary').focus();
+            }, 100);
+        }
+
+        // Calculate total late fees considering all tax differences and payments
+        function calculateTotalLateFees() {
+            const taxDifferences = Array.from(document.querySelectorAll('.tax-amount')).map(input => ({
+                amount: parseFloat(input.value) || 0,
+                date: new Date(input.closest('.calculator-container').querySelector('.tax-date').value)
+            })).filter(tax => tax.amount > 0 && !isNaN(tax.date));
+
+            const payments = Array.from(document.querySelectorAll('.payment-amount')).map(input => ({
+                amount: parseFloat(input.value) || 0,
+                date: new Date(input.closest('.calculator-container').querySelector('.payment-date').value)
+            })).filter(payment => payment.amount > 0 && !isNaN(payment.date));
+
+            let totalPenalty = 0;
+            const excludeFractions = document.getElementById('excludeFractions').checked;
+            const entityType = document.getElementById('entityType').value;
+            const finalPaymentDate = new Date(document.getElementById('finalPaymentDate').value);
+
+            // Calculate penalties for each tax difference
+            taxDifferences.forEach(tax => {
+                const startDate = new Date(tax.date.getFullYear(), 
+                                        entityType === 'individual' ? 3 : 4, 
+                                        1);
+                let months = monthsDifference(startDate, finalPaymentDate);
+                if (excludeFractions) {
+                    months = Math.floor(months);
+                }
+                totalPenalty += tax.amount * (0.015 * months); // 1.5% per month
+            });
+
+            // Subtract payments
+            payments.forEach(payment => {
+                if (totalPenalty > 0) {
+                    totalPenalty = Math.max(0, totalPenalty - payment.amount);
+                }
+            });
+
+            // Show results sections
+            document.getElementById('lateFeeResults').classList.remove('hidden');
+            const detailedResults = document.getElementById('detailedResults');
+            detailedResults.classList.remove('hidden');
+            
+            // Clear previous calculation details
+            const calculationDetails = document.getElementById('calculationDetails');
+            calculationDetails.innerHTML = '';
+
+            // Add calculation details for each tax difference
+            taxDifferences.forEach((tax, index) => {
+                const startDate = new Date(tax.date.getFullYear(), 
+                                        entityType === 'individual' ? 3 : 4, 
+                                        1);
+                let months = monthsDifference(startDate, finalPaymentDate);
+                if (excludeFractions) {
+                    months = Math.floor(months);
+                }
+                const penalty = tax.amount * (0.015 * months);
+
+                const detailDiv = document.createElement('div');
+                detailDiv.className = 'calculator-container p-4';
+                detailDiv.innerHTML = `
+                    <div class="text-lg mb-2">فرق ضريبي ${index + 1}</div>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <div class="text-gray-400">المبلغ:</div>
+                            <div class="font-bold">${tax.amount.toFixed(2)} جنيه</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-400">تاريخ الفترة:</div>
+                            <div class="font-bold">${tax.date.toLocaleDateString('ar-EG')}</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-400">عدد الشهور:</div>
+                            <div class="font-bold">${months}</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-400">الغرامة:</div>
+                            <div class="font-bold">${penalty.toFixed(2)} جنيه</div>
+                        </div>
+                    </div>
+                `;
+                calculationDetails.appendChild(detailDiv);
+            });
+
+            // Add payment details if any
+            if (payments.length > 0) {
+                const paymentsDiv = document.createElement('div');
+                paymentsDiv.className = 'calculator-container p-4 mt-4';
+                paymentsDiv.innerHTML = `
+                    <div class="text-lg mb-2">المبالغ المسددة</div>
+                    <div class="space-y-2">
+                        ${payments.map((payment, index) => `
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <div class="text-gray-400">المبلغ ${index + 1}:</div>
+                                    <div class="font-bold">${payment.amount.toFixed(2)} جنيه</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-400">تاريخ السداد:</div>
+                                    <div class="font-bold">${payment.date.toLocaleDateString('ar-EG')}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                calculationDetails.appendChild(paymentsDiv);
+            }
+
+            // Update total penalty amount
+            document.getElementById('totalPenaltyAmount').textContent = totalPenalty.toFixed(2) + ' جنيه';
+        }
+
+        // Reset Late Fee Calculator
+        function resetLateFeeCalculator() {
+            // Reset form inputs
+            document.getElementById('entityType').value = 'individual';
+            document.getElementById('finalPaymentDate').value = '';
+            document.getElementById('excludeFractions').checked = true;
+
+            // Clear tax differences and payments
+            document.getElementById('taxDifferencesContainer').innerHTML = '';
+
+            // Hide results sections
+            document.getElementById('lateFeeResults').classList.add('hidden');
+            document.getElementById('detailedResults').classList.add('hidden');
+
+            // Reset result values
+            document.getElementById('entityTypeResult').textContent = '-';
+            document.getElementById('startDateResult').textContent = '-';
+            document.getElementById('monthsCountResult').textContent = '0';
+            document.getElementById('penaltyRateResult').textContent = '0%';
+            document.getElementById('totalPenaltyAmount').textContent = '0 جنيه';
+            document.getElementById('calculationDetails').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
