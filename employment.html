@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة أرباح العمل والتأمينات</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- PDF Export Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- Excel Export Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(to bottom right, #1a1a2e, #16213e, #0f3460);
+            min-height: 100vh;
+            color: white;
+        }
+        .calculator-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .input-field {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .input-field:focus {
+            border-color: #4f46e5;
+            outline: none;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background: rgba(79, 70, 229, 0.2);
+            border-color: #4f46e5;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.7; }
+        }
+
+        .loading-spinner, .profit-loading-spinner, .results-loading-spinner {
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .loading-spinner:not(.hidden), 
+        .profit-loading-spinner:not(.hidden), 
+        .results-loading-spinner:not(.hidden) {
+            opacity: 1;
+            transform: scale(1);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes slideIn {
+            0% { transform: translateY(-10px); opacity: 0; }
+            50% { transform: translateY(3px); opacity: 0.8; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .results-updated-badge {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .results-updated-badge:not(.hidden) {
+            animation: slideIn 0.5s ease forwards;
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container mx-auto max-w-4xl">
+        <h1 class="text-4xl font-bold text-center mb-8">حاسبة أرباح العمل والتأمينات</h1>
+        
+        <!-- Tab Navigation -->
+        <div class="flex gap-4 mb-6">
+            <button class="tab-button active flex-1 p-4 rounded-lg border border-transparent hover:bg-opacity-20 hover:bg-blue-500" onclick="showTab('employment')">
+                <i class="fas fa-briefcase mr-2"></i>
+                أرباح العمل
+            </button>
+            <button class="tab-button flex-1 p-4 rounded-lg border border-transparent hover:bg-opacity-20 hover:bg-blue-500" onclick="showTab('income')">
+                <i class="fas fa-calculator mr-2"></i>
+                حساب الضريبة
+            </button>
+            <button class="tab-button flex-1 p-4 rounded-lg border border-transparent hover:bg-opacity-20 hover:bg-blue-500" onclick="showTab('insurance')">
+                <i class="fas fa-shield-alt mr-2"></i>
+                التأمينات الاجتماعية
+            </button>
+        </div>
+
+        <!-- Employment Earnings Calculator -->
+        <div id="employment-tab" class="calculator-container p-6 mb-8">
+            <div class="grid grid-cols-2 gap-6 mb-6">
+                <!-- Year Selection -->
+                <div>
+                    <label class="block mb-2">السنة</label>
+                    <select id="year" class="input-field w-full p-2 rounded">
+                        <script>
+                            const currentYear = new Date().getFullYear();
+                            for(let year = 1990; year <= 2050; year++) {
+                                document.write(`<option value="${year}" ${year === currentYear ? 'selected' : ''}>${year}</option>`);
+                            }
+                        </script>
+                    </select>
+                </div>
+
+                <!-- Entry Type -->
+                <div>
+                    <label class="block mb-2">نوع الإدخال</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="entryType" value="monthly" checked class="mr-2">
+                            <span>شهري</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="entryType" value="annual" class="mr-2">
+                            <span>سنوي</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <!-- Number of Employees -->
+                <div>
+                    <label class="block mb-2">عدد الموظفين</label>
+                    <input type="number" id="employeeCount" class="input-field w-full p-2 rounded" min="1" value="1">
+                </div>
+
+                <!-- Monthly Wage -->
+                <div>
+                    <label class="block mb-2">الأجر الشهري</label>
+                    <input type="number" id="monthlyWage" class="input-field w-full p-2 rounded" required>
+                </div>
+
+                <!-- Exempt Allowances -->
+                <div>
+                    <label class="block mb-2">البدلات المعفاة</label>
+                    <input type="number" id="exemptAllowances" class="input-field w-full p-2 rounded">
+                </div>
+
+                <!-- Monthly Deductions -->
+                <div>
+                    <label class="block mb-2">الخصومات والاستقطاعات الشهرية</label>
+                    <input type="number" id="monthlyDeductions" class="input-field w-full p-2 rounded">
+                </div>
+            </div>
+
+            <!-- Calculate Button -->
+            <div class="mt-6">
+                <button onclick="calculateEmployment()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300">
+                    حساب النتائج
+                </button>
+            </div>
+
+            <!-- Results Section -->
+            <div id="employment-results" class="mt-8 hidden">
+                <h3 class="text-2xl font-bold mb-6">النتائج</h3>
+                
+                <!-- Per Employee Results -->
+                <div class="calculator-container p-4 mb-4">
+                    <h4 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fas fa-user text-blue-400"></i>
+                        النتائج لكل موظف
+                    </h4>
+
+                    <!-- Income Breakdown -->
+                    <div class="calculator-container p-4 mb-4">
+                        <h5 class="text-md font-bold mb-3 flex items-center gap-2">
+                            <i class="fas fa-money-bill text-green-400"></i>
+                            تفاصيل الدخل
+                        </h5>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-gray-300 mb-1">الأجر الشهري:</div>
+                                <div id="monthlyWageDisplay" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">الأجر السنوي:</div>
+                                <div id="annualWageDisplay" class="text-xl font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deductions -->
+                    <div class="calculator-container p-4 mb-4">
+                        <h5 class="text-md font-bold mb-3 flex items-center gap-2">
+                            <i class="fas fa-minus-circle text-red-400"></i>
+                            الخصومات والإعفاءات
+                        </h5>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-gray-300 mb-1">التأمينات الشهرية:</div>
+                                <div id="monthlyInsurance" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">التأمينات السنوية:</div>
+                                <div id="annualInsurance" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">الإعفاء الشخصي:</div>
+                                <div id="personalExemption" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">الإعفاء الإضافي:</div>
+                                <div id="additionalExemption" class="text-xl font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tax Results -->
+                    <div class="calculator-container p-4 mb-4">
+                        <h5 class="text-md font-bold mb-3 flex items-center gap-2">
+                            <i class="fas fa-chart-pie text-purple-400"></i>
+                            نتائج الضريبة
+                        </h5>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-gray-300 mb-1">الضريبة الشهرية:</div>
+                                <div id="monthlyTax" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">الضريبة السنوية:</div>
+                                <div id="annualTax" class="text-xl font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Net Income -->
+                    <div class="calculator-container p-4">
+                        <h5 class="text-md font-bold mb-3 flex items-center gap-2">
+                            <i class="fas fa-wallet text-green-400"></i>
+                            صافي الدخل
+                        </h5>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-gray-300 mb-1">صافي الدخل الشهري:</div>
+                                <div id="monthlyNetBase" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">صافي الدخل السنوي:</div>
+                                <div id="annualNetBase" class="text-xl font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Results -->
+                <div class="calculator-container p-4">
+                    <h4 class="text-lg font-bold mb-4">النتائج الإجمالية</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-gray-300 mb-1">إجمالي الضريبة الشهرية:</div>
+                            <div id="totalMonthlyTax" class="text-xl font-bold">0</div>
+                        </div>
+                        <div>
+                            <div class="text-gray-300 mb-1">إجمالي الضريبة السنوية:</div>
+                            <div id="totalAnnualTax" class="text-xl font-bold">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Income Tax Calculator Tab -->
+        <div id="income-tab" class="calculator-container p-6 mb-8 hidden">
+            <div class="space-y-6">
+                <!-- Entity Type Selection -->
+                <div>
+                    <label class="block mb-2">نوع المنشأة</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="entityType" value="sole" checked class="mr-2">
+                            <span>منشأة فردية</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="entityType" value="company" class="mr-2">
+                            <span>شركة</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Accounting Method -->
+                <div>
+                    <label class="block mb-2">طريقة المحاسبة</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="accountingMethod" value="taxBases" checked class="mr-2">
+                            <span>أسس ضريبية</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="accountingMethod" value="article3" class="mr-2">
+                            <span>المادة 3 من القانون 30 لسنة 2023</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Net Profit Input Method -->
+                <div>
+                    <label class="block mb-2">طريقة إدخال صافي الربح</label>
+                    <div class="flex gap-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="profitInputMethod" value="manual" checked class="mr-2" onchange="toggleProfitInputMethod()">
+                            <span>إدخال يدوي</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="profitInputMethod" value="calculated" class="mr-2" onchange="toggleProfitInputMethod()">
+                            <span>حساب تلقائي</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Manual Net Profit Input -->
+                <div id="manualProfitInput">
+                    <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                        <label class="block mb-2 flex items-center">
+                            <i class="fas fa-coins mr-2 text-yellow-400"></i>
+                            صافي الربح
+                        </label>
+                        <input type="number" id="netProfit" class="input-field w-full p-3 rounded" placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Automatic Profit Calculation -->
+                <div id="automaticProfitInput" class="space-y-6 hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                            <label class="block mb-2 flex items-center">
+                                <i class="fas fa-shopping-cart mr-2 text-blue-400"></i>
+                                المشتريات السنوية
+                            </label>
+                            <input type="number" id="annualPurchases" class="input-field w-full p-3 rounded" placeholder="0">
+                        </div>
+                        <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                            <label class="block mb-2 flex items-center">
+                                <i class="fas fa-box mr-2 text-blue-400"></i>
+                                المخزون الأول
+                            </label>
+                            <input type="number" id="beginningInventory" class="input-field w-full p-3 rounded" placeholder="0">
+                        </div>
+                        <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                            <label class="block mb-2 flex items-center">
+                                <i class="fas fa-exclamation-triangle mr-2 text-yellow-400"></i>
+                                المشتريات غير المصرح بها
+                            </label>
+                            <input type="number" id="undeclaredPurchases" class="input-field w-full p-3 rounded" placeholder="0">
+                        </div>
+                        <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                            <label class="block mb-2 flex items-center">
+                                <i class="fas fa-chart-line mr-2 text-green-400"></i>
+                                المبيعات السنوية
+                            </label>
+                            <input type="number" id="annualSales" class="input-field w-full p-3 rounded" placeholder="0">
+                        </div>
+                        <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                            <label class="block mb-2 flex items-center">
+                                <i class="fas fa-file-invoice-dollar mr-2 text-red-400"></i>
+                                المصروفات العامة
+                            </label>
+                            <input type="number" id="generalExpenses" class="input-field w-full p-3 rounded" placeholder="0">
+                        </div>
+                        <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                            <label class="block mb-2 flex items-center">
+                                <i class="fas fa-chart-area mr-2 text-purple-400"></i>
+                                الإهلاك السنوي
+                            </label>
+                            <input type="number" id="annualDepreciation" class="input-field w-full p-3 rounded" placeholder="0">
+                        </div>
+                    </div>
+                    <button onclick="calculateNetProfit()" id="calculateProfitButton" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 mt-6 relative flex items-center justify-center group">
+                        <span class="flex items-center gap-2">
+                            <i class="fas fa-calculator"></i>
+                            <span class="profit-button-text">حساب صافي الربح</span>
+                            <span class="profit-loading-spinner hidden">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </span>
+                        </span>
+                        <div class="absolute -top-12 right-1/2 transform translate-x-1/2 bg-gray-800 text-white text-sm py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap scale-95 group-hover:scale-100">
+                            حساب صافي الربح التقديري
+                            <span class="absolute bottom-0 right-1/2 transform translate-x-1/2 translate-y-full border-4 border-transparent border-t-gray-800"></span>
+                        </div>
+                    </button>
+                </div>
+
+                <!-- Calculate Button -->
+                <button onclick="calculateIncomeTax()" id="calculateTaxButton" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300 relative flex items-center justify-center group">
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-calculator"></i>
+                        <span class="button-text">حساب الضريبة</span>
+                        <span class="loading-spinner hidden">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </span>
+                    </span>
+                    <div class="absolute -top-12 right-1/2 transform translate-x-1/2 bg-gray-800 text-white text-sm py-1.5 px-3 rounded opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap scale-95 group-hover:scale-100">
+                        حساب الضريبة المستحقة
+                        <span class="absolute bottom-0 right-1/2 transform translate-x-1/2 translate-y-full border-4 border-transparent border-t-gray-800"></span>
+                    </div>
+                </button>
+
+                <!-- Results Section -->
+                <div id="income-results" class="mt-8 hidden space-y-6">
+                    <div class="calculator-container p-4">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-2xl font-bold flex items-center gap-3">
+                                <i class="fas fa-chart-bar text-blue-400"></i>
+                                النتائج
+                            </h3>
+                            <div class="flex items-center gap-3">
+                                <div class="results-loading-spinner hidden">
+                                    <i class="fas fa-spinner fa-spin text-blue-400"></i>
+                                </div>
+                                <div class="results-updated-badge text-sm font-normal text-gray-400 bg-gray-800 px-3 py-1 rounded-full hidden">
+                                    <i class="fas fa-check-circle mr-1 text-green-400"></i>
+                                    تم التحديث
+                                </div>
+                            </div>
+                        </div>
+                    
+                    <!-- Profit Calculation Results -->
+                    <div class="calculator-container p-4 mb-4">
+                        <h4 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <i class="fas fa-calculator text-green-400"></i>
+                            نتائج حساب الربح
+                        </h4>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                                <div class="text-gray-300 mb-2 flex items-center gap-2">
+                                    <i class="fas fa-coins text-yellow-400"></i>
+                                    إجمالي التكلفة
+                                </div>
+                                <div id="totalCost" class="text-xl font-bold">0</div>
+                            </div>
+                            <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                                <div class="text-gray-300 mb-2 flex items-center gap-2">
+                                    <i class="fas fa-chart-line text-green-400"></i>
+                                    مجمل الربح
+                                </div>
+                                <div id="grossProfit" class="text-xl font-bold">0</div>
+                            </div>
+                            <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                                <div class="text-gray-300 mb-2 flex items-center gap-2">
+                                    <i class="fas fa-wallet text-blue-400"></i>
+                                    صافي الربح
+                                </div>
+                                <div id="calculatedNetProfit" class="text-xl font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                <!-- Tax Calculation Results -->
+                <div class="calculator-container p-4">
+                    <h4 class="text-lg font-bold mb-4 flex items-center">
+                        <i class="fas fa-chart-pie mr-2 text-blue-400"></i>
+                        نتائج حساب الضريبة
+                    </h4>
+                    <div id="taxBrackets" class="space-y-4">
+                        <!-- Tax brackets will be added here -->
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-gray-700">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                                <div class="text-gray-300 mb-2 flex items-center">
+                                    <i class="fas fa-hand-holding-usd mr-2 text-green-400"></i>
+                                    إجمالي الضريبة:
+                                </div>
+                                <div id="totalTax" class="text-2xl font-bold">0</div>
+                            </div>
+                            <div class="calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300">
+                                <div class="text-gray-300 mb-2 flex items-center">
+                                    <i class="fas fa-wallet mr-2 text-purple-400"></i>
+                                    الصافي بعد الضريبة:
+                                </div>
+                                <div id="netAfterTax" class="text-2xl font-bold">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Insurance Calculator Tab -->
+        <div id="insurance-tab" class="calculator-container p-6 hidden">
+            <div class="space-y-6">
+                <!-- Sector Selection -->
+                <div>
+                    <label class="block mb-2">القطاع</label>
+                    <select id="sector" class="input-field w-full p-2 rounded">
+                        <option value="public">القطاع العام</option>
+                        <option value="private">القطاع الخاص</option>
+                        <option value="government">القطاع الحكومي</option>
+                    </select>
+                </div>
+
+                <!-- Year Selection -->
+                <div>
+                    <label class="block mb-2">السنة</label>
+                    <select id="insuranceYear" class="input-field w-full p-2 rounded">
+                        <script>
+                            for(let year = 1990; year <= 2050; year++) {
+                                document.write(`<option value="${year}" ${year === new Date().getFullYear() ? 'selected' : ''}>${year}</option>`);
+                            }
+                        </script>
+                    </select>
+                </div>
+
+                <!-- Insurance Wage -->
+                <div>
+                    <label class="block mb-2">الأجر التأميني</label>
+                    <input type="number" id="insuranceWage" class="input-field w-full p-2 rounded" min="2300">
+                    <small class="text-gray-400 block mt-1">الحد الأدنى للأجر التأميني 2,300 جنيه (بداية من 2025)</small>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="calculateInsurance()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-calculator"></i>
+                        حساب التأمينات
+                    </button>
+                    <button onclick="resetInsurance()" class="w-full bg-gray-600 text-white py-3 px-6 rounded-lg hover:bg-gray-700 transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-redo"></i>
+                        إعادة تعيين
+                    </button>
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="exportToPDF()" class="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-file-pdf"></i>
+                        تصدير PDF
+                    </button>
+                    <button onclick="exportToExcel()" class="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-all duration-300 flex items-center justify-center gap-2">
+                        <i class="fas fa-file-excel"></i>
+                        تصدير Excel
+                    </button>
+                </div>
+
+                <!-- Results Section -->
+                <div id="insurance-results" class="mt-8 hidden">
+                    <h3 class="text-2xl font-bold mb-6">نتائج حساب التأمينات</h3>
+                    
+                    <!-- Monthly Results -->
+                    <div class="calculator-container p-4 mb-4">
+                        <h4 class="text-lg font-bold mb-4">النتائج الشهرية</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-gray-300 mb-1">حصة الموظف (11%):</div>
+                                <div id="employeeShare" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">حصة الشركة:</div>
+                                <div id="companyShare" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">إجمالي الاشتراك الشهري:</div>
+                                <div id="monthlyTotal" class="text-xl font-bold text-blue-400">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Annual Results -->
+                    <div class="calculator-container p-4">
+                        <h4 class="text-lg font-bold mb-4">النتائج السنوية</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <div class="text-gray-300 mb-1">حصة الموظف السنوية:</div>
+                                <div id="annualEmployeeShare" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">حصة الشركة السنوية:</div>
+                                <div id="annualCompanyShare" class="text-xl font-bold">0</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-300 mb-1">إجمالي الاشتراك السنوي:</div>
+                                <div id="annualTotal" class="text-xl font-bold text-green-400">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Future Projections -->
+                    <div class="mt-6">
+                        <h4 class="text-lg font-bold mb-4">التوقعات المستقبلية (زيادة 15% سنوياً حتى 2029)</h4>
+                        <div id="futureProjections" class="space-y-3">
+                            <!-- Projections will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center text-gray-400 py-4 mt-8 border-t border-gray-800">
+        <div class="space-y-2">
+            <p>تم التصميم بواسطة: أحمد مصطفى إبراهيم</p>
+            <p class="flex items-center justify-center gap-4">
+                <a href="tel:01225155329" class="hover:text-blue-400 transition-colors">
+                    <i class="fas fa-phone"></i>
+                    01225155329
+                </a>
+                <a href="mailto:a12345.mostafa@gmail.com" class="hover:text-blue-400 transition-colors">
+                    <i class="fas fa-envelope"></i>
+                    a12345.mostafa@gmail.com
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab Navigation and Helper Functions
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('[id$="-tab"]').forEach(tab => tab.classList.add('hidden'));
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            // Update active button
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // Format currency and animation helpers
+        function formatCurrency(amount) {
+            return amount.toFixed(2) + ' جنيه';
+        }
+
+        function animateValue(start, end, duration, callback) {
+            const startTime = performance.now();
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function for smooth animation
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                const current = start + (end - start) * easeOutQuart;
+                
+                callback(current);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
+
+        function updateWithAnimation(elementId, value) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+
+            // Parse current value, defaulting to 0 if not a number
+            const startValue = parseFloat(element.textContent.replace(/[^\d.-]/g, '')) || 0;
+            
+            // Animate from current to new value
+            animateValue(startValue, value, 800, (current) => {
+                element.textContent = formatCurrency(current);
+                
+                // Add color animation class
+                element.classList.remove('text-green-400', 'text-red-400');
+                if (current > startValue) {
+                    element.classList.add('text-green-400');
+                } else if (current < startValue) {
+                    element.classList.add('text-red-400');
+                }
+            });
+        }
+
+        // Toggle Profit Input Method
+        function toggleProfitInputMethod() {
+            const method = document.querySelector('input[name="profitInputMethod"]:checked').value;
+            const manualInput = document.getElementById('manualProfitInput');
+            const autoInput = document.getElementById('automaticProfitInput');
+            
+            if (method === 'calculated') {
+                manualInput.classList.add('hidden');
+                autoInput.classList.remove('hidden');
+            } else {
+                manualInput.classList.remove('hidden');
+                autoInput.classList.add('hidden');
+            }
+        }
+
+        // Initialize input method display on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleProfitInputMethod();
+        });
+
+        // Calculate Net Profit
+        function calculateNetProfit() {
+            const button = document.getElementById('calculateProfitButton');
+            const buttonText = button.querySelector('.profit-button-text');
+            const loadingSpinner = button.querySelector('.profit-loading-spinner');
+            
+            // Show loading state
+            button.disabled = true;
+            buttonText.classList.add('opacity-50');
+            loadingSpinner.classList.remove('hidden');
+
+            // Get values
+            const purchases = parseFloat(document.getElementById('annualPurchases').value) || 0;
+            const inventory = parseFloat(document.getElementById('beginningInventory').value) || 0;
+            const undeclared = parseFloat(document.getElementById('undeclaredPurchases').value) || 0;
+            const sales = parseFloat(document.getElementById('annualSales').value) || 0;
+            const expenses = parseFloat(document.getElementById('generalExpenses').value) || 0;
+            const depreciation = parseFloat(document.getElementById('annualDepreciation').value) || 0;
+
+            // Calculate results
+            const totalCost = purchases + inventory + undeclared;
+            const grossProfit = sales - totalCost;
+            const netProfit = grossProfit - (expenses + depreciation);
+
+            // Update results with animation
+            updateWithAnimation('totalCost', totalCost);
+            updateWithAnimation('grossProfit', grossProfit);
+            updateWithAnimation('calculatedNetProfit', netProfit);
+            
+            // Set the calculated net profit for tax calculation
+            document.getElementById('netProfit').value = netProfit;
+
+            // Reset loading state after a small delay to show the animation
+            setTimeout(() => {
+                button.disabled = false;
+                buttonText.classList.remove('opacity-50');
+                loadingSpinner.classList.add('hidden');
+            }, 500);
+        }
+
+        // Calculate Income Tax
+        function calculateIncomeTax() {
+            const button = document.getElementById('calculateTaxButton');
+            const buttonText = button.querySelector('.button-text');
+            const loadingSpinner = button.querySelector('.loading-spinner');
+            
+            // Show loading states
+            button.disabled = true;
+            buttonText.classList.add('opacity-50');
+            loadingSpinner.classList.remove('hidden');
+
+            // Show results loading state
+            const resultsLoadingSpinner = document.querySelector('.results-loading-spinner');
+            const resultsUpdatedBadge = document.querySelector('.results-updated-badge');
+            if (resultsLoadingSpinner && resultsUpdatedBadge) {
+                resultsLoadingSpinner.classList.remove('hidden');
+                resultsUpdatedBadge.classList.add('hidden');
+            }
+
+            // Get values
+            const isCompany = document.querySelector('input[name="entityType"]:checked').value === 'company';
+            const netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
+            const useArticle3 = document.querySelector('input[name="accountingMethod"]:checked').value === 'article3';
+
+            let taxResult;
+            if (useArticle3) {
+                // Article 3 tax calculation
+                taxResult = calculateArticle3Tax(netProfit);
+            } else {
+                // Regular tax calculation
+                taxResult = calculateRegularTax(netProfit, isCompany);
+            }
+
+            // Show results section
+            document.getElementById('income-results').classList.remove('hidden');
+
+            // Update tax brackets display
+            const taxBracketsContainer = document.getElementById('taxBrackets');
+            taxBracketsContainer.innerHTML = '';
+
+            taxResult.brackets.forEach((bracket, index) => {
+                const bracketDiv = document.createElement('div');
+                bracketDiv.className = 'calculator-container p-4 relative group hover:bg-opacity-20 hover:bg-blue-500 transition-all duration-300';
+                bracketDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-layer-group text-blue-400"></i>
+                                <span class="text-lg font-bold">شريحة ${index + 1}</span>
+                            </div>
+                            <span class="text-gray-300 bg-gray-800 px-2 py-1 rounded-full text-sm">${bracket.rate}%</span>
+                        </div>
+                        <span class="text-xl font-bold text-green-400">${formatCurrency(bracket.amount)}</span>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-700">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-2 text-gray-300">
+                                <i class="fas fa-calculator text-yellow-400"></i>
+                                الضريبة المستحقة:
+                            </div>
+                            <span class="text-lg font-bold text-yellow-400">${formatCurrency(bracket.tax)}</span>
+                        </div>
+                    </div>
+                `;
+                taxBracketsContainer.appendChild(bracketDiv);
+            });
+
+            // Update final results
+            updateWithAnimation('totalTax', taxResult.totalTax);
+            updateWithAnimation('netAfterTax', netProfit - taxResult.totalTax);
+
+            // Reset loading states after calculation
+            setTimeout(() => {
+                // Reset button state
+                button.disabled = false;
+                buttonText.classList.remove('opacity-50');
+                loadingSpinner.classList.add('hidden');
+                
+                // Update results state
+                if (resultsLoadingSpinner && resultsUpdatedBadge) {
+                    resultsLoadingSpinner.classList.add('hidden');
+                    resultsUpdatedBadge.classList.remove('hidden');
+                }
+                
+                // Scroll to results
+                document.getElementById('income-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 800); // Slightly longer delay to show the loading animation
+        }
+
+        // Calculate Regular Tax
+        function calculateRegularTax(income, isCompany) {
+            if (isCompany) {
+                // Company flat tax rate 22.5%
+                const tax = income * 0.225;
+                return {
+                    brackets: [{
+                        amount: income,
+                        rate: 22.5,
+                        tax: tax
+                    }],
+                    totalTax: tax
+                };
+            } else {
+                // Individual progressive tax
+                const brackets = [
+                    { threshold: 20000, rate: 0 },    // Personal exemption
+                    { threshold: 30000, rate: 10 },
+                    { threshold: 45000, rate: 15 },
+                    { threshold: 60000, rate: 20 },
+                    { threshold: 200000, rate: 22.5 },
+                    { threshold: 400000, rate: 25 },
+                    { threshold: 1000000, rate: 27.5 },
+                    { threshold: Infinity, rate: 30 }
+                ];
+
+                let remainingIncome = income;
+                let totalTax = 0;
+                const taxBrackets = [];
+
+                // Personal exemption
+                const personalExemption = 20000;
+                remainingIncome = Math.max(0, remainingIncome - personalExemption);
+
+                // Additional exemption for income < 60000
+                if (income < 60000) {
+                    const additionalExemption = 9000;
+                    remainingIncome = Math.max(0, remainingIncome - additionalExemption);
+                    taxBrackets.push({
+                        amount: additionalExemption,
+                        rate: 0,
+                        tax: 0,
+                        note: 'إعفاء إضافي'
+                    });
+                }
+
+                // Add personal exemption bracket
+                taxBrackets.push({
+                    amount: personalExemption,
+                    rate: 0,
+                    tax: 0,
+                    note: 'إعفاء شخصي'
+                });
+
+                // Calculate tax by bracket
+                let previousThreshold = personalExemption;
+                for (let i = 1; i < brackets.length; i++) {
+                    if (remainingIncome <= 0) break;
+
+                    const bracketSize = brackets[i].threshold - previousThreshold;
+                    const taxableInThisBracket = Math.min(bracketSize, remainingIncome);
+                    const bracketTax = taxableInThisBracket * (brackets[i].rate / 100);
+
+                    if (taxableInThisBracket > 0) {
+                        taxBrackets.push({
+                            amount: taxableInThisBracket,
+                            rate: brackets[i].rate,
+                            tax: bracketTax
+                        });
+                        totalTax += bracketTax;
+                    }
+
+                    remainingIncome -= bracketSize;
+                    previousThreshold = brackets[i].threshold;
+                }
+
+                return {
+                    brackets: taxBrackets,
+                    totalTax: totalTax
+                };
+            }
+        }
+
+        // Calculate Social Insurance
+        function calculateInsurance() {
+            const wage = parseFloat(document.getElementById('insuranceWage').value) || 0;
+            const sector = document.getElementById('sector').value;
+            const year = parseInt(document.getElementById('insuranceYear').value);
+
+            // Validate minimum wage based on year
+            const minWage = year >= 2025 ? 2300 : 1200;
+            if (wage < minWage) {
+                alert(`الحد الأدنى للأجر التأميني هو ${minWage} جنيه للعام ${year}`);
+                return;
+            }
+
+            // Get employer contribution rate based on sector
+            const employerRates = {
+                'government': 0.1725, // 17.25%
+                'public': 0.1825,     // 18.25%
+                'private': 0.1875     // 18.75%
+            };
+
+            // Calculate monthly contributions
+            const employeeShare = wage * 0.11; // 11% employee contribution
+            const companyShare = wage * employerRates[sector];
+            const monthlyTotal = employeeShare + companyShare;
+
+            // Calculate annual amounts
+            const annualEmployeeShare = employeeShare * 12;
+            const annualCompanyShare = companyShare * 12;
+            const annualTotal = monthlyTotal * 12;
+
+            // Show results section
+            document.getElementById('insurance-results').classList.remove('hidden');
+
+            // Update results with animation
+            updateWithAnimation('employeeShare', employeeShare);
+            updateWithAnimation('companyShare', companyShare);
+            updateWithAnimation('monthlyTotal', monthlyTotal);
+            updateWithAnimation('annualEmployeeShare', annualEmployeeShare);
+            updateWithAnimation('annualCompanyShare', annualCompanyShare);
+            updateWithAnimation('annualTotal', annualTotal);
+
+            // Calculate and display future projections
+            const projectionsContainer = document.getElementById('futureProjections');
+            projectionsContainer.innerHTML = '';
+
+            let projectedWage = wage;
+            
+            for (let projYear = year + 1; projYear <= Math.min(year + 5, 2050); projYear++) {
+                projectedWage *= 1.15; // 15% annual increase
+                const projectedEmployeeShare = projectedWage * 0.11;
+                const projectedCompanyShare = projectedWage * employerRates[sector];
+                const projectedTotal = projectedEmployeeShare + projectedCompanyShare;
+
+                const projectionDiv = document.createElement('div');
+                projectionDiv.className = 'calculator-container p-3';
+                projectionDiv.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div class="text-lg font-bold">${projYear}</div>
+                        <div class="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <div class="text-gray-400">الأجر التأميني:</div>
+                                <div class="font-bold">${formatCurrency(projectedWage)}</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-400">إجمالي الاشتراك الشهري:</div>
+                                <div class="font-bold">${formatCurrency(projectedTotal)}</div>
+                            </div>
+                            <div>
+                                <div class="text-gray-400">إجمالي الاشتراك السنوي:</div>
+                                <div class="font-bold">${formatCurrency(projectedTotal * 12)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                projectionsContainer.appendChild(projectionDiv);
+            }
+
+            // Scroll to results
+            document.getElementById('insurance-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Reset Insurance Calculator
+        function resetInsurance() {
+            document.getElementById('insuranceWage').value = '';
+            document.getElementById('sector').selectedIndex = 0;
+            document.getElementById('insuranceYear').value = new Date().getFullYear();
+            document.getElementById('insurance-results').classList.add('hidden');
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            const element = document.getElementById('insurance-results');
+            if (element.classList.contains('hidden')) {
+                alert('يرجى حساب التأمينات أولاً');
+                return;
+            }
+
+            html2pdf()
+                .set({
+                    margin: 1,
+                    filename: 'تقرير_التأمينات.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                })
+                .from(element)
+                .save();
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            const element = document.getElementById('insurance-results');
+            if (element.classList.contains('hidden')) {
+                alert('يرجى حساب التأمينات أولاً');
+                return;
+            }
+
+            const wage = parseFloat(document.getElementById('insuranceWage').value);
+            const sector = document.getElementById('sector').options[document.getElementById('sector').selectedIndex].text;
+            const year = document.getElementById('insuranceYear').value;
+
+            const wb = XLSX.utils.book_new();
+            const ws_data = [
+                ['تقرير التأمينات الاجتماعية'],
+                ['السنة', year],
+                ['القطاع', sector],
+                ['الأجر التأميني', wage],
+                ['حصة الموظف الشهرية', parseFloat(document.getElementById('employeeShare').textContent)],
+                ['حصة الشركة الشهرية', parseFloat(document.getElementById('companyShare').textContent)],
+                ['الإجمالي الشهري', parseFloat(document.getElementById('monthlyTotal').textContent)],
+                ['حصة الموظف السنوية', parseFloat(document.getElementById('annualEmployeeShare').textContent)],
+                ['حصة الشركة السنوية', parseFloat(document.getElementById('annualCompanyShare').textContent)],
+                ['الإجمالي السنوي', parseFloat(document.getElementById('annualTotal').textContent)]
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            XLSX.utils.book_append_sheet(wb, ws, 'التأمينات');
+            XLSX.writeFile(wb, 'تقرير_التأمينات.xlsx');
+        }
+
+        // Calculate Article 3 Tax
+        function calculateArticle3Tax(income) {
+            // Tax calculation based on Article 3 of Law No. 30 of 2023
+            let tax = 0;
+            if (income < 250000) tax = 1000;
+            else if (income < 500000) tax = 2500;
+            else if (income < 1000000) tax = 5000;
+            else if (income < 2000000) tax = income * 0.005;
+            else if (income < 3000000) tax = income * 0.0075;
+            else if (income <= 10000000) tax = income * 0.01;
+            else tax = income * 0.01;
+
+            return {
+                brackets: [{
+                    amount: income,
+                    rate: (tax / income * 100).toFixed(2),
+                    tax: tax
+                }],
+                totalTax: tax
+            };
+        }
+
+        // Calculate Employment Results
+        function calculateEmployment() {
+            const employeeCount = parseInt(document.getElementById('employeeCount').value) || 1;
+            const monthlyWage = parseFloat(document.getElementById('monthlyWage').value) || 0;
+            const exemptAllowances = parseFloat(document.getElementById('exemptAllowances').value) || 0;
+            const monthlyDeductions = parseFloat(document.getElementById('monthlyDeductions').value) || 0;
+            const isMonthly = document.querySelector('input[name="entryType"]:checked').value === 'monthly';
+
+            // Calculate annual income
+            const annualWage = monthlyWage * 12;
+            const annualDeductions = monthlyDeductions * 12;
+
+            // Calculate insurance contributions (11%)
+            const insuranceWage = Math.min(monthlyWage, 9400); // Maximum insurance wage
+            const monthlyInsurance = insuranceWage * 0.11;
+            const annualInsurance = monthlyInsurance * 12;
+
+            // Calculate annual taxable income
+            const annualIncome = annualWage;
+            let taxableIncome = annualIncome;
+
+            // Apply exemptions
+            const personalExemption = 20000;
+            const additionalExemption = (annualIncome - annualInsurance < 60000) ? 9000 : 0;
+            
+            // Subtract exemptions and insurance
+            taxableIncome = Math.max(0, taxableIncome - personalExemption - additionalExemption - annualInsurance - exemptAllowances);
+
+            // Initialize tax
+            let annualTax = 0;
+
+            // Tax brackets with progressive thresholds
+            const brackets = [
+                { threshold: 0, rate: 0.00 },      // First 15k: 0%
+                { threshold: 15000, rate: 0.10 },  // Next 15k: 10%
+                { threshold: 30000, rate: 0.15 },  // Next 15k: 15%
+                { threshold: 45000, rate: 0.20 },  // Next 15k: 20%
+                { threshold: 60000, rate: 0.225 }, // Next 140k: 22.5%
+                { threshold: 200000, rate: 0.25 }, // Next 200k: 25%
+                { threshold: 400000, rate: 0.275 }, // Next 600k: 27.5%
+                { threshold: 1000000, rate: 0.30 }  // Above 1M: 30%
+            ];
+
+            // Calculate tax for each bracket
+            let remainingIncome = taxableIncome;
+            let previousThreshold = 0;
+
+            for (const bracket of brackets) {
+                if (remainingIncome <= 0) break;
+
+                const bracketSize = bracket.threshold - previousThreshold;
+                const taxableInBracket = Math.min(remainingIncome, bracketSize);
+                
+                if (taxableInBracket > 0) {
+                    annualTax += taxableInBracket * bracket.rate;
+                }
+                
+                remainingIncome -= bracketSize;
+                previousThreshold = bracket.threshold;
+            }
+
+            // Handle any remaining income in the highest bracket
+            if (remainingIncome > 0) {
+                annualTax += remainingIncome * brackets[brackets.length - 1].rate;
+            }
+
+            // Calculate monthly values
+            const monthlyTax = annualTax / 12;
+            const monthlyNetBase = monthlyWage - monthlyDeductions - monthlyInsurance - monthlyTax;
+            const annualNetBase = monthlyNetBase * 12;
+
+            // Calculate totals for all employees
+            const totalMonthlyTax = monthlyTax * employeeCount;
+            const totalAnnualTax = annualTax * employeeCount;
+
+            // Show results section
+            document.getElementById('employment-results').classList.remove('hidden');
+
+            // Update all results with animation
+            const results = {
+                // Income
+                'monthlyWageDisplay': monthlyWage,
+                'annualWageDisplay': annualWage,
+
+                // Deductions and Exemptions
+                'monthlyInsurance': monthlyInsurance,
+                'annualInsurance': annualInsurance,
+                'personalExemption': personalExemption,
+                'additionalExemption': additionalExemption,
+
+                // Tax Results
+                'monthlyTax': monthlyTax,
+                'annualTax': annualTax,
+                'totalMonthlyTax': totalMonthlyTax,
+                'totalAnnualTax': totalAnnualTax,
+
+                // Net Income
+                'monthlyNetBase': monthlyNetBase,
+                'annualNetBase': annualNetBase
+            };
+
+            // Update each result with animation
+            Object.entries(results).forEach(([id, value]) => {
+                updateWithAnimation(id, value);
+            });
+
+            // Scroll to results
+            document.getElementById('employment-results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>
