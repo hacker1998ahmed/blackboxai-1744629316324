@@ -225,7 +225,13 @@
                         <p id="netTaxResult" class="text-2xl neon-text">0 جنيه</p>
                     </div>
 
-                    <div class="flex space-x-4 mt-6">
+                    <!-- Tax Brackets Display -->
+                    <div id="taxBrackets" class="mt-6 glass-effect p-6 neon-border rounded-lg">
+                        <h3 class="text-2xl font-bold text-white mb-4">شرائح الضريبة المطبقة</h3>
+                        <!-- Tax brackets will be displayed here -->
+                    </div>
+
+                    <div class="flex space-x-4 mt-6" dir="ltr">
                         <button onclick="generatePDF()" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-green-700 transition duration-300">
                             تحميل PDF
                         </button>
@@ -798,21 +804,44 @@
 
             // Apply exemption only if business volume is less than 600,000
             if (businessVolume <= 600000) {
-                exemption = 20000;
+                exemption = 40000; // Updated exemption amount
                 netProfit = Math.max(0, netProfit - exemption);
             }
 
-            // Determine starting tax bracket based on business volume
+            // Calculate tax based on business volume brackets
             if (businessVolume <= 600000) {
-                // Start from 0% (progressive brackets)
-                if (netProfit <= 20000) return 0;
-                if (netProfit <= 30000) return (netProfit - 20000) * 0.10;
-                if (netProfit <= 45000) return (30000 - 20000) * 0.10 + (netProfit - 30000) * 0.15;
-                if (netProfit <= 60000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (netProfit - 45000) * 0.20;
-                if (netProfit <= 200000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (netProfit - 60000) * 0.225;
-                if (netProfit <= 400000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (200000 - 60000) * 0.225 + (netProfit - 200000) * 0.25;
-                if (netProfit <= 1000000) return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (200000 - 60000) * 0.225 + (400000 - 200000) * 0.25 + (netProfit - 400000) * 0.275;
-                return (30000 - 20000) * 0.10 + (45000 - 30000) * 0.15 + (60000 - 45000) * 0.20 + (200000 - 60000) * 0.225 + (400000 - 200000) * 0.25 + (1000000 - 400000) * 0.275 + (netProfit - 1000000) * 0.30;
+                // Progressive tax calculation starting from 0%
+                let remainingProfit = netProfit;
+                
+                if (remainingProfit <= 0) return { tax: 0, exemption };
+                
+                if (remainingProfit > 1000000) {
+                    tax += (remainingProfit - 1000000) * 0.30;
+                    remainingProfit = 1000000;
+                }
+                if (remainingProfit > 400000) {
+                    tax += (remainingProfit - 400000) * 0.275;
+                    remainingProfit = 400000;
+                }
+                if (remainingProfit > 200000) {
+                    tax += (remainingProfit - 200000) * 0.25;
+                    remainingProfit = 200000;
+                }
+                if (remainingProfit > 60000) {
+                    tax += (remainingProfit - 60000) * 0.225;
+                    remainingProfit = 60000;
+                }
+                if (remainingProfit > 45000) {
+                    tax += (remainingProfit - 45000) * 0.20;
+                    remainingProfit = 45000;
+                }
+                if (remainingProfit > 30000) {
+                    tax += (remainingProfit - 30000) * 0.15;
+                    remainingProfit = 30000;
+                }
+                if (remainingProfit > 20000) {
+                    tax += (remainingProfit - 20000) * 0.10;
+                }
             } else if (businessVolume <= 700000) {
                 tax = netProfit * 0.10; // Start from 10%
             } else if (businessVolume <= 800000) {
@@ -912,53 +941,84 @@
                 const businessVolume = parseFloat(document.getElementById('businessVolume').value) || 0;
                 const profitCalculationMethod = document.getElementById('profitCalculationMethod').value;
 
-                if (businessVolume <= 0) {
-                    alert('يرجى إدخال حجم أعمال صحيح');
-                    return;
-                }
+                // Reset error messages
+                document.querySelectorAll('.error-message').forEach(el => el.remove());
 
                 let netProfit = 0;
                 let tax = 0;
                 let exemption = 0;
+                let taxBrackets = '';
 
                 // Calculate net profit based on selected method
                 if (accountingMethod === 'calculate') {
-                    // Get values from purchase calculation form
-                    const beginningInventory = parseFloat(document.getElementById('beginningInventory').value) || 0;
-                    const localPurchases = parseFloat(document.getElementById('localPurchases').value) || 0;
-                    const importPurchases = parseFloat(document.getElementById('importPurchases').value) || 0;
-                    const customs = parseFloat(document.getElementById('customs').value) || 0;
-                    const undeclaredPurchases = parseFloat(document.getElementById('undeclaredPurchases').value) || 0;
-                    const endingInventory = parseFloat(document.getElementById('endingInventory').value) || 0;
-                    const sales = parseFloat(document.getElementById('sales').value) || 0;
-                    const expenses = parseFloat(document.getElementById('expenses').value) || 0;
-                    const depreciation = parseFloat(document.getElementById('depreciation').value) || 0;
+                    const values = {
+                        beginningInventory: parseFloat(document.getElementById('beginningInventory').value) || 0,
+                        localPurchases: parseFloat(document.getElementById('localPurchases').value) || 0,
+                        importPurchases: parseFloat(document.getElementById('importPurchases').value) || 0,
+                        customs: parseFloat(document.getElementById('customs').value) || 0,
+                        undeclaredPurchases: parseFloat(document.getElementById('undeclaredPurchases').value) || 0,
+                        endingInventory: parseFloat(document.getElementById('endingInventory').value) || 0,
+                        sales: parseFloat(document.getElementById('sales').value) || 0,
+                        expenses: parseFloat(document.getElementById('expenses').value) || 0,
+                        depreciation: parseFloat(document.getElementById('depreciation').value) || 0
+                    };
 
                     // Calculate purchase cost
-                    const purchaseCost = beginningInventory + localPurchases + importPurchases + 
-                                       customs + undeclaredPurchases - endingInventory;
+                    const purchaseCost = values.beginningInventory + values.localPurchases + values.importPurchases + 
+                                       values.customs + values.undeclaredPurchases - values.endingInventory;
 
                     // Calculate gross profit
-                    const grossProfit = sales - purchaseCost;
+                    const grossProfit = values.sales - purchaseCost;
 
                     // Calculate net profit
-                    netProfit = grossProfit - expenses + depreciation;
+                    netProfit = grossProfit - values.expenses + values.depreciation;
+
+                    // Update purchase cost display
+                    document.getElementById('purchaseCost').textContent = Math.round(purchaseCost).toLocaleString('ar-EG');
+                    document.getElementById('grossProfit').textContent = Math.round(grossProfit).toLocaleString('ar-EG');
+                    document.getElementById('calculatedNetProfit').textContent = Math.round(netProfit).toLocaleString('ar-EG');
 
                 } else if (accountingMethod === 'netProfit') {
                     if (profitCalculationMethod === 'percentage') {
                         const percentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
                         netProfit = businessVolume * (percentage / 100);
+                        document.getElementById('calculatedProfit').textContent = Math.round(netProfit).toLocaleString('ar-EG');
                     } else {
                         netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
                     }
                 } else if (accountingMethod === 'article3') {
                     tax = calculateArticle3Tax(businessVolume);
+                    taxBrackets = `
+                        <div class="mt-4 p-4 bg-gray-800 bg-opacity-50 rounded-lg">
+                            <h4 class="text-white font-bold mb-2">شرائح ضريبة المادة 3:</h4>
+                            <ul class="text-gray-300 text-sm space-y-1">
+                                <li>حتى 250,000: 1,000 جنيه</li>
+                                <li>حتى 500,000: 2,500 جنيه</li>
+                                <li>حتى 1,000,000: 5,000 جنيه</li>
+                                <li>حتى 2,000,000: 0.5%</li>
+                                <li>حتى 3,000,000: 0.75%</li>
+                                <li>حتى 10,000,000: 1%</li>
+                                <li>أكثر من 10,000,000: 1%</li>
+                            </ul>
+                        </div>`;
+                }
+
+                // Validate inputs
+                if (!businessVolume || businessVolume <= 0) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message bg-red-500 bg-opacity-50 text-white p-2 rounded mt-2';
+                    errorDiv.textContent = 'يرجى إدخال حجم أعمال صحيح';
+                    document.getElementById('taxForm').appendChild(errorDiv);
+                    return;
                 }
 
                 // Calculate tax based on entity type and accounting method
                 if (accountingMethod !== 'article3') {
-                    if (netProfit <= 0) {
-                        alert('يرجى إدخال صافي ربح صحيح');
+                    if (netProfit <= 0 && accountingMethod !== 'article3') {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message bg-red-500 bg-opacity-50 text-white p-2 rounded mt-2';
+                        errorDiv.textContent = 'يرجى إدخال صافي ربح صحيح';
+                        document.getElementById('taxForm').appendChild(errorDiv);
                         return;
                     }
 
@@ -966,8 +1026,39 @@
                         const result = calculateSoleProprietorshipTax(netProfit, businessVolume);
                         tax = result.tax;
                         exemption = result.exemption;
+                        
+                        // Display tax brackets for sole proprietorship
+                        taxBrackets = `
+                            <div class="mt-4 p-4 bg-gray-800 bg-opacity-50 rounded-lg">
+                                <h4 class="text-white font-bold mb-2">شرائح الضريبة للمنشأة الفردية:</h4>
+                                <p class="text-gray-300 mb-2">حجم الأعمال: ${businessVolume.toLocaleString('ar-EG')} جنيه</p>
+                                <p class="text-gray-300 mb-2">الإعفاء: ${businessVolume <= 600000 ? '40,000' : '0'} جنيه</p>
+                                <ul class="text-gray-300 text-sm space-y-1">
+                                    ${businessVolume <= 600000 ? `
+                                        <li>حتى 20,000: 0%</li>
+                                        <li>من 20,000 إلى 30,000: 10%</li>
+                                        <li>من 30,000 إلى 45,000: 15%</li>
+                                        <li>من 45,000 إلى 60,000: 20%</li>
+                                        <li>من 60,000 إلى 200,000: 22.5%</li>
+                                        <li>من 200,000 إلى 400,000: 25%</li>
+                                        <li>من 400,000 إلى 1,000,000: 27.5%</li>
+                                        <li>أكثر من 1,000,000: 30%</li>
+                                    ` : `
+                                        <li>يبدأ من ${
+                                            businessVolume <= 700000 ? '10%' :
+                                            businessVolume <= 800000 ? '15%' :
+                                            businessVolume <= 900000 ? '20%' : '22.5%'
+                                        }</li>
+                                    `}
+                                </ul>
+                            </div>`;
                     } else {
                         tax = calculateCorporateTax(netProfit);
+                        taxBrackets = `
+                            <div class="mt-4 p-4 bg-gray-800 bg-opacity-50 rounded-lg">
+                                <h4 class="text-white font-bold mb-2">ضريبة الشركات:</h4>
+                                <p class="text-gray-300">معدل ثابت: 22.5% من صافي الربح</p>
+                            </div>`;
                     }
                 }
 
@@ -990,9 +1081,18 @@
                     }
                 });
 
+                // Display tax brackets
+                const taxBracketsContainer = document.getElementById('taxBrackets');
+                if (taxBracketsContainer) {
+                    taxBracketsContainer.innerHTML = taxBrackets;
+                }
+
             } catch (error) {
                 console.error('Error calculating tax:', error);
-                alert('حدث خطأ في حساب الضرائب. يرجى التحقق من المدخلات');
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message bg-red-500 bg-opacity-50 text-white p-2 rounded mt-2';
+                errorDiv.textContent = 'حدث خطأ في الحساب. يرجى التحقق من المدخلات';
+                document.getElementById('taxForm').appendChild(errorDiv);
             }
         }
 
