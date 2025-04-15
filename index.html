@@ -306,64 +306,41 @@
             <section class="glass-effect p-6 neon-border">
                 <h2 class="text-2xl font-bold text-white mb-6">النتائج</h2>
                 <div class="space-y-6">
-                    <!-- Monthly Results -->
-                    <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold text-white mb-4">النتائج الشهرية</h3>
-                        <div class="grid grid-cols-3 gap-4 text-center">
-                            <div>
-                                <p class="text-gray-400 mb-2">التأمين</p>
-                                <p id="monthlyInsurance" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 mb-2">الخصومات</p>
-                                <p id="monthlyDeductions" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 mb-2">الإجمالي</p>
-                                <p id="monthlyTotal" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
+                    <!-- Summary -->
+                    <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg mb-4">
+                        <h3 class="text-xl font-bold text-white mb-4">الملخص</h3>
+                        <div class="text-center text-white">
+                            <p>الإجمالي (سنوي: <span id="annualTotal" class="font-bold text-blue-400">0</span>) (شهري: <span id="monthlyTotal" class="font-bold text-blue-400">0</span>)</p>
                         </div>
                     </div>
 
-                    <!-- Annual Results -->
+                    <!-- Monthly Breakdown -->
                     <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold text-white mb-4">النتائج السنوية</h3>
-                        <div class="grid grid-cols-3 gap-4 text-center">
-                            <div>
-                                <p class="text-gray-400 mb-2">التأمين</p>
-                                <p id="annualInsurance" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 mb-2">الخصومات</p>
-                                <p id="annualDeductions" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 mb-2">الإجمالي</p>
-                                <p id="annualTotal" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Tax Results -->
-                    <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold text-white mb-4">نتائج الضريبة</h3>
-                        <div class="grid grid-cols-2 gap-4 text-center">
-                            <div>
-                                <p class="text-gray-400 mb-2">الإعفاء الشخصي</p>
-                                <p id="totalPersonalExemption" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 mb-2">وعاء الضريبة</p>
-                                <p id="totalTaxBase" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 mb-2">الضريبة المستحقة</p>
-                                <p id="totalTax" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
-                            <div>
-                                <p class="text-gray-400 mb-2">الصافي بعد الضريبة</p>
-                                <p id="totalNet" class="text-2xl font-bold text-blue-400 neon-text">0</p>
-                            </div>
+                        <h3 class="text-xl font-bold text-white mb-4">التفاصيل الشهرية</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-white">
+                                <thead>
+                                    <tr class="text-gray-400">
+                                        <th class="text-right p-2">الشهر</th>
+                                        <th class="text-right p-2">الإعفاء الشخصي</th>
+                                        <th class="text-right p-2">وعاء الضريبة</th>
+                                        <th class="text-right p-2">الضريبة</th>
+                                        <th class="text-right p-2">الصافي</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthlyBreakdown">
+                                    <!-- Monthly rows will be added here dynamically -->
+                                </tbody>
+                                <tfoot class="border-t border-gray-600">
+                                    <tr class="font-bold">
+                                        <td class="p-2">الإجمالي</td>
+                                        <td id="totalPersonalExemption" class="p-2">0</td>
+                                        <td id="totalTaxBase" class="p-2">0</td>
+                                        <td id="totalTax" class="p-2">0</td>
+                                        <td id="totalNet" class="p-2">0</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -621,8 +598,13 @@
             const monthlySalary = parseFloat(document.getElementById('monthlySalary').value) || 0;
             const sectorType = document.getElementById('sectorType').value;
             
-            if (monthlySalary <= 0) {
-                alert('يرجى إدخال راتب شهري صحيح');
+            // Validate input
+            if (!monthlySalary || monthlySalary <= 0) {
+                document.getElementById('employeeMonthlyShare').textContent = '0 جنيه';
+                document.getElementById('employeeAnnualShare').textContent = '0 جنيه';
+                document.getElementById('companyMonthlyShare').textContent = '0 جنيه';
+                document.getElementById('companyAnnualShare').textContent = '0 جنيه';
+                document.getElementById('totalInsurance').textContent = '0 جنيه';
                 return;
             }
 
@@ -630,20 +612,20 @@
             let employerRate;
             switch(sectorType) {
                 case 'government':
-                    employerRate = 0.15; // 15% for government sector
+                    employerRate = 0.1725; // 17.25% for government sector
                     break;
                 case 'public':
-                    employerRate = 0.20; // 20% for public sector
+                    employerRate = 0.1825; // 18.25% for public sector
                     break;
                 default:
-                    employerRate = 0.185; // 18.5% for private sector
+                    employerRate = 0.1875; // 18.75% for private sector
             }
 
             const employeeRate = 0.11; // 11% for employee
             
-            // Apply salary limits
-            const minSalary = 1400;
-            const maxSalary = 9400;
+            // Apply salary limits (2025 rules)
+            const minSalary = 2300; // New minimum from 2025
+            const maxSalary = Math.round(minSalary * Math.pow(1.15, 4)); // 15% annual increase until 2029
             const insurableSalary = Math.min(Math.max(monthlySalary, minSalary), maxSalary);
 
             // Calculate monthly shares
@@ -844,7 +826,7 @@
             return { tax, exemption };
         }
 
-        // Calculate Business Earnings Tax
+        // Calculate Business Earnings Tax (Law No. 7 of 2024)
         function calculateBusinessEarnings(e) {
             e.preventDefault();
             try {
@@ -852,81 +834,63 @@
                 const deductions = parseFloat(document.getElementById('deductions').value) || 0;
                 const calculateInsurance = document.getElementById('calculateInsuranceBusiness').checked;
 
-                // Calculate annual income
-                const annualIncome = monthlySalary * 12;
+                // Initialize monthly breakdown table
+                const monthlyBreakdown = document.getElementById('monthlyBreakdown');
+                monthlyBreakdown.innerHTML = '';
 
-                // Calculate insurance (11% of salary, capped between 1,400 and 9,400)
-                let monthlyInsurance = 0;
-                if (calculateInsurance) {
-                    const minSalary = 1400;
-                    const maxSalary = 9400;
-                    const insurableSalary = Math.min(Math.max(monthlySalary, minSalary), maxSalary);
-                    monthlyInsurance = insurableSalary * 0.11;
+                // Monthly calculations
+                const months = [];
+                const personalExemption = 20000 / 12; // Monthly personal exemption
+                let totalTax = 0;
+                let totalNet = 0;
+                let totalTaxBase = 0;
+
+                for (let i = 0; i < 12; i++) {
+                    const date = new Date(2024, i, 7);
+                    
+                    // Calculate insurance for this month
+                    let monthlyInsurance = 0;
+                    if (calculateInsurance) {
+                        const minSalary = 2300; // New minimum from 2025
+                        const maxSalary = Math.round(minSalary * Math.pow(1.15, 4)); // 15% annual increase until 2029
+                        const insurableSalary = Math.min(Math.max(monthlySalary, minSalary), maxSalary);
+                        monthlyInsurance = insurableSalary * 0.11;
+                    }
+
+                    // Calculate monthly tax base
+                    const monthlyTotal = monthlyInsurance + deductions;
+                    const taxBase = monthlySalary - monthlyTotal - personalExemption;
+                    totalTaxBase += taxBase;
+
+                    // Calculate monthly tax using 2024 brackets
+                    let monthlyTax = calculateMonthlyTax(taxBase);
+                    totalTax += monthlyTax;
+
+                    // Calculate net amount
+                    const netAmount = monthlySalary - monthlyTax - monthlyTotal;
+                    totalNet += netAmount;
+
+                    // Add row to table
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-2">${date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                        <td class="p-2">${Math.round(personalExemption).toLocaleString('ar-EG')}</td>
+                        <td class="p-2">${Math.round(taxBase).toLocaleString('ar-EG')}</td>
+                        <td class="p-2">${Math.round(monthlyTax).toLocaleString('ar-EG')}</td>
+                        <td class="p-2">${Math.round(netAmount).toLocaleString('ar-EG')}</td>
+                    `;
+                    monthlyBreakdown.appendChild(row);
                 }
 
-                // Calculate annual values
-                const annualInsurance = monthlyInsurance * 12;
-                const annualDeductions = deductions * 12;
-                const monthlyTotal = monthlyInsurance + deductions;
-                const annualTotal = monthlyTotal * 12;
-
-                // Calculate taxable income
-                const personalExemption = 20000;
-                let taxableIncome = annualIncome - annualInsurance - personalExemption;
-
-                // Additional exemption for income < 60,000
-                if (annualIncome - annualInsurance < 60000) {
-                    taxableIncome -= 9000;
-                }
-
-                // Calculate tax using progressive brackets
-                let tax = 0;
-                if (taxableIncome > 0) {
-                    if (taxableIncome > 1000000) {
-                        tax += (taxableIncome - 1000000) * 0.30;
-                        taxableIncome = 1000000;
-                    }
-                    if (taxableIncome > 400000) {
-                        tax += (taxableIncome - 400000) * 0.275;
-                        taxableIncome = 400000;
-                    }
-                    if (taxableIncome > 200000) {
-                        tax += (taxableIncome - 200000) * 0.25;
-                        taxableIncome = 200000;
-                    }
-                    if (taxableIncome > 60000) {
-                        tax += (taxableIncome - 60000) * 0.225;
-                        taxableIncome = 60000;
-                    }
-                    if (taxableIncome > 45000) {
-                        tax += (taxableIncome - 45000) * 0.20;
-                        taxableIncome = 45000;
-                    }
-                    if (taxableIncome > 30000) {
-                        tax += (taxableIncome - 30000) * 0.15;
-                        taxableIncome = 30000;
-                    }
-                    if (taxableIncome > 20000) {
-                        tax += (taxableIncome - 20000) * 0.10;
-                    }
-                }
-
-                // Calculate net income after tax
-                const netAfterTax = annualIncome - annualTotal - tax;
-
-                // Update results
-                updateBusinessResults({
-                    monthlyInsurance,
-                    monthlyDeductions: deductions,
-                    monthlyTotal,
-                    annualInsurance,
-                    annualDeductions,
-                    annualTotal,
-                    personalExemption,
-                    taxBase: annualIncome - annualInsurance - personalExemption,
-                    tax,
-                    net: netAfterTax
-                });
+                // Update summary
+                document.getElementById('monthlyTotal').textContent = Math.round(monthlySalary - (totalTax/12)).toLocaleString('ar-EG');
+                document.getElementById('annualTotal').textContent = Math.round(monthlySalary * 12 - totalTax).toLocaleString('ar-EG');
+                
+                // Update totals
+                document.getElementById('totalPersonalExemption').textContent = Math.round(personalExemption * 12).toLocaleString('ar-EG');
+                document.getElementById('totalTaxBase').textContent = Math.round(totalTaxBase).toLocaleString('ar-EG');
+                document.getElementById('totalTax').textContent = Math.round(totalTax).toLocaleString('ar-EG');
+                document.getElementById('totalNet').textContent = Math.round(totalNet).toLocaleString('ar-EG');
 
             } catch (error) {
                 console.error('Error in calculation:', error);
@@ -1162,30 +1126,40 @@
             document.getElementById('taxForm').reset();
         }
 
-        // Calculate Tax Amount for Business Earnings
-        function calculateTaxAmount(income) {
-            if (income <= 0) return 0;
+        // Calculate Monthly Tax according to Law No. 7 of 2024
+        function calculateMonthlyTax(monthlyIncome) {
+            if (monthlyIncome <= 0) return 0;
             
             let tax = 0;
-            const brackets = [
-                { limit: 15000, rate: 0 },
-                { limit: 30000, rate: 0.10 },
-                { limit: 45000, rate: 0.15 },
-                { limit: 60000, rate: 0.20 },
-                { limit: 200000, rate: 0.225 },
-                { limit: Infinity, rate: 0.25 }
-            ];
+            let taxableIncome = monthlyIncome;
 
-            let remainingIncome = income;
-            let previousLimit = 0;
-
-            for (const bracket of brackets) {
-                const bracketIncome = Math.min(remainingIncome, bracket.limit - previousLimit);
-                if (bracketIncome <= 0) break;
-                
-                tax += bracketIncome * bracket.rate;
-                remainingIncome -= bracketIncome;
-                previousLimit = bracket.limit;
+            // Progressive tax brackets for monthly income (Law No. 7 of 2024)
+            if (taxableIncome > 83333.33) { // 1,000,000 / 12
+                tax += (taxableIncome - 83333.33) * 0.30;
+                taxableIncome = 83333.33;
+            }
+            if (taxableIncome > 33333.33) { // 400,000 / 12
+                tax += (taxableIncome - 33333.33) * 0.275;
+                taxableIncome = 33333.33;
+            }
+            if (taxableIncome > 16666.67) { // 200,000 / 12
+                tax += (taxableIncome - 16666.67) * 0.25;
+                taxableIncome = 16666.67;
+            }
+            if (taxableIncome > 5000) { // 60,000 / 12
+                tax += (taxableIncome - 5000) * 0.225;
+                taxableIncome = 5000;
+            }
+            if (taxableIncome > 3750) { // 45,000 / 12
+                tax += (taxableIncome - 3750) * 0.20;
+                taxableIncome = 3750;
+            }
+            if (taxableIncome > 2500) { // 30,000 / 12
+                tax += (taxableIncome - 2500) * 0.15;
+                taxableIncome = 2500;
+            }
+            if (taxableIncome > 1666.67) { // 20,000 / 12
+                tax += (taxableIncome - 1666.67) * 0.10;
             }
 
             return tax;
