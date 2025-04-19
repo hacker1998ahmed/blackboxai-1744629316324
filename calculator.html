@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<!-- Keep head section the same -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة الضرائب والتأمينات المصرية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Keep existing styles */
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00f7;
+            --dark-purple: #2a0e61;
+        }
+        
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+        }
+
+        .neon-border {
+            box-shadow: 0 0 5px var(--neon-blue),
+                        0 0 10px var(--neon-blue),
+                        0 0 20px var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+        }
+
+        .neon-text {
+            text-shadow: 0 0 5px var(--neon-blue),
+                         0 0 10px var(--neon-blue),
+                         0 0 20px var(--neon-blue);
+            color: var(--neon-blue);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+        }
+
+        .input-3d {
+            transform: perspective(1000px) rotateX(5deg);
+            transition: transform 0.3s ease;
+        }
+
+        .input-3d:focus {
+            transform: perspective(1000px) rotateX(0deg);
+        }
+
+        .result-card {
+            transform: perspective(1000px) rotateY(5deg);
+            transition: transform 0.3s ease;
+        }
+
+        .result-card:hover {
+            transform: perspective(1000px) rotateY(0deg);
+        }
+
+        .tab-active {
+            background: rgba(255, 255, 255, 0.2);
+            border-bottom: 2px solid var(--neon-blue);
+        }
+
+        .animate-result {
+            animation: pulse 0.5s ease-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container mx-auto max-w-6xl">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-6xl font-bold neon-text mb-4">حاسبة الضرائب والتأمينات المصرية</h1>
+            <p class="text-gray-300 text-xl">حساب الضرائب والتأمينات الاجتماعية وفقاً للقوانين المصرية</p>
+        </header>
+
+        <div class="flex justify-center mb-8">
+            <button onclick="switchTab('tax')" id="taxTab" class="px-6 py-3 text-white rounded-t-lg tab-active">حاسبة الضرائب</button>
+            <button onclick="switchTab('business')" id="businessTab" class="px-6 py-3 text-white rounded-t-lg">حاسبة أرباح الأعمال</button>
+            <button onclick="switchTab('additional')" id="additionalTab" class="px-6 py-3 text-white rounded-t-lg">حاسبة الضريبة الإضافية</button>
+            <button onclick="switchTab('late')" id="lateTab" class="px-6 py-3 text-white rounded-t-lg">حاسبة غرامات التأخير</button>
+            <button onclick="switchTab('insurance')" id="insuranceTab" class="px-6 py-3 text-white rounded-t-lg">حاسبة التأمينات</button>
+        </div>
+
+        <div id="taxCalculator" class="grid md:grid-cols-2 gap-8">
+            <section class="glass-effect p-6 neon-border">
+                <h2 class="text-2xl font-bold text-white mb-6">البيانات المطلوبة</h2>
+                <form id="taxForm" class="space-y-6" onsubmit="event.preventDefault(); calculateTax();">
+                    <div>
+                        <label class="block text-white mb-2">نوع المنشأة</label>
+                        <select id="entityType" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" onchange="calculateTax()">
+                            <option value="sole">منشأة فردية</option>
+                            <option value="company">شركة</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white mb-2">طريقة المحاسبة</label>
+                        <select id="accountingMethod" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" onchange="calculateTax()">
+                            <option value="netProfit">صافي الربح مباشرة</option>
+                            <option value="calculate">حساب من المبيعات والمصروفات والإهلاك</option>
+                            <option value="article3">المادة 3 من القانون 30 لسنة 2023</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white mb-2">السنة</label>
+                        <select id="taxYear" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" onchange="calculateTax()">
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-white mb-2">حجم الأعمال السنوي</label>
+                        <input type="number" id="businessVolume" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" 
+                               placeholder="أدخل حجم الأعمال" oninput="calculateTax()">
+                    </div>
+
+                    <div>
+                        <label class="block text-white mb-2">صافي الربح</label>
+                        <input type="number" id="netProfit" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" 
+                               placeholder="أدخل صافي الربح" oninput="calculateTax()">
+                    </div>
+
+                    <div class="flex space-x-4" dir="ltr">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-blue-700 transition duration-300">
+                            حساب الضرائب
+                        </button>
+                        <button type="reset" onclick="resetForm()" class="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-red-700 transition duration-300">
+                            إعادة تعيين
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="glass-effect p-6 neon-border">
+                <h2 class="text-2xl font-bold text-white mb-6">النتائج</h2>
+                <div class="space-y-4">
+                    <div class="result-card glass-effect p-4">
+                        <h3 class="text-white font-bold">ضريبة الدخل</h3>
+                        <p id="incomeTaxResult" class="text-2xl neon-text">0 جنيه</p>
+                    </div>
+
+                    <div class="result-card glass-effect p-4">
+                        <h3 class="text-white font-bold">الإعفاء الضريبي</h3>
+                        <p id="taxExemptionResult" class="text-2xl neon-text">0 جنيه</p>
+                    </div>
+
+                    <div class="result-card glass-effect p-4">
+                        <h3 class="text-white font-bold">صافي الضريبة المستحقة</h3>
+                        <p id="netTaxResult" class="text-2xl neon-text">0 جنيه</p>
+                    </div>
+
+                    <div id="taxBrackets" class="mt-6 glass-effect p-6 neon-border rounded-lg">
+                        <h3 class="text-2xl font-bold text-white mb-4">شرائح الضريبة المطبقة</h3>
+                    </div>
+
+                    <div class="flex space-x-4 mt-6" dir="ltr">
+                        <button onclick="generatePDF()" class="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-green-700 transition duration-300">
+                            تحميل PDF
+                        </button>
+                        <button onclick="window.print()" class="flex-1 bg-purple-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-purple-700 transition duration-300">
+                            طباعة
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Debug mode
+        const DEBUG = true;
+        function debug(...args) {
+            if (DEBUG) {
+                console.log(...args);
+            }
+        }
+
+        // Global state object
+        let calculator = {
+            entityType: 'sole',
+            businessVolume: 0,
+            netProfit: 0,
+            tax: 0,
+            exemption: 0
+        };
+
+        // Initialize year dropdowns
+        function initializeYearDropdowns() {
+            debug('Initializing year dropdowns...');
+            const currentYear = new Date().getFullYear();
+            const yearDropdowns = ['taxYear'];
+            
+            yearDropdowns.forEach(dropdownId => {
+                const dropdown = document.getElementById(dropdownId);
+                if (dropdown) {
+                    for (let year = 1990; year <= 2050; year++) {
+                        const option = document.createElement('option');
+                        option.value = year;
+                        option.textContent = year;
+                        if (year === currentYear) option.selected = true;
+                        dropdown.appendChild(option);
+                    }
+                }
+            });
+        }
+
+        // Calculate tax function
+        function calculateTax() {
+            debug('Calculating tax...');
+            try {
+                // Update calculator from form inputs
+                calculator.entityType = document.getElementById('entityType').value;
+                calculator.businessVolume = parseFloat(document.getElementById('businessVolume').value) || 0;
+                calculator.netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
+
+                debug('Current calculator state:', calculator);
+
+                // Reset tax and exemption
+                calculator.tax = 0;
+                calculator.exemption = 0;
+
+                // Calculate based on entity type
+                if (calculator.entityType === 'sole') {
+                    if (calculator.businessVolume <= 600000) {
+                        calculator.exemption = 40000;
+                        const taxableIncome = Math.max(0, calculator.netProfit - calculator.exemption);
+                        debug('Taxable income:', taxableIncome);
+                        
+                        if (taxableIncome <= 15000) {
+                            calculator.tax = taxableIncome * 0.10;
+                            debug('Tax bracket: <= 15,000 (10%)', calculator.tax);
+                        } else if (taxableIncome <= 30000) {
+                            calculator.tax = 15000 * 0.10 + (taxableIncome - 15000) * 0.15;
+                            debug('Tax bracket: <= 30,000 (15%)', calculator.tax);
+                        } else if (taxableIncome <= 160000) {
+                            calculator.tax = 15000 * 0.10 + 15000 * 0.15 + (taxableIncome - 30000) * 0.20;
+                            debug('Tax bracket: <= 160,000 (20%)', calculator.tax);
+                        } else {
+                            calculator.tax = 15000 * 0.10 + 15000 * 0.15 + 130000 * 0.20 + (taxableIncome - 160000) * 0.225;
+                            debug('Tax bracket: > 160,000 (22.5%)', calculator.tax);
+                        }
+                    } else {
+                        calculator.tax = calculator.netProfit * 0.225;
+                        debug('Fixed tax rate (22.5%)', calculator.tax);
+                    }
+                } else {
+                    calculator.tax = calculator.netProfit * 0.225;
+                    debug('Company tax rate (22.5%)', calculator.tax);
+                }
+
+                debug('Final calculated values:', { tax: calculator.tax, exemption: calculator.exemption });
+                updateResults();
+            } catch (error) {
+                console.error('Error calculating tax:', error);
+            }
+        }
+
+        // Update results in the UI
+        function updateResults() {
+            debug('Updating results...');
+            try {
+                const elements = [
+                    { id: 'incomeTaxResult', value: calculator.tax },
+                    { id: 'taxExemptionResult', value: calculator.exemption },
+                    { id: 'netTaxResult', value: calculator.tax }
+                ];
+
+                elements.forEach(({ id, value }) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        debug(`Updating ${id} with value:`, value);
+                        element.classList.add('animate-result');
+                        element.textContent = Math.round(value).toLocaleString('ar-EG') + ' جنيه';
+                        setTimeout(() => {
+                            element.classList.remove('animate-result');
+                        }, 500);
+                    }
+                });
+
+                const taxBracketsDiv = document.getElementById('taxBrackets');
+                if (taxBracketsDiv) {
+                    if (calculator.entityType === 'sole') {
+                        taxBracketsDiv.innerHTML = `
+                            <h3 class="text-2xl font-bold text-white mb-4">شرائح الضريبة المطبقة</h3>
+                            <div class="text-white">
+                                <p>حجم الأعمال: ${calculator.businessVolume.toLocaleString('ar-EG')} جنيه</p>
+                                <p>الإعفاء: ${calculator.exemption.toLocaleString('ar-EG')} جنيه</p>
+                                <ul class="mt-2">
+                                    <li>حتى 15,000: 10%</li>
+                                    <li>من 15,001 إلى 30,000: 15%</li>
+                                    <li>من 30,001 إلى 160,000: 20%</li>
+                                    <li>أكثر من 160,000: 22.5%</li>
+                                </ul>
+                            </div>`;
+                    } else {
+                        taxBracketsDiv.innerHTML = `
+                            <h3 class="text-2xl font-bold text-white mb-4">شرائح الضريبة المطبقة</h3>
+                            <div class="text-white">
+                                <p>معدل ضريبة ثابت للشركات: 22.5%</p>
+                            </div>`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating results:', error);
+            }
+        }
+
+        // Reset form and calculator
+        function resetForm() {
+            debug('Resetting form and calculator...');
+            const form = document.getElementById('taxForm');
+            if (form) {
+                form.reset();
+                // Reset calculator
+                calculator = {
+                    entityType: 'sole',
+                    businessVolume: 0,
+                    netProfit: 0,
+                    tax: 0,
+                    exemption: 0
+                };
+                updateResults();
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            debug('Page loaded, initializing...');
+            initializeYearDropdowns();
+            calculateTax(); // Initial calculation
+
+            // Add input event listeners
+            ['entityType', 'businessVolume', 'netProfit'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', function(e) {
+                        debug(`Input event on ${id}:`, e.target.value);
+                        // Dispatch a custom event to ensure the calculation is triggered
+                        const event = new Event('calculate');
+                        document.dispatchEvent(event);
+                        calculateTax();
+                    });
+                }
+            });
+
+            // Add custom event listener for calculation
+            document.addEventListener('calculate', function() {
+                debug('Calculate event triggered');
+                calculateTax();
+            });
+
+            // Add keypress event listener for Enter key
+            document.getElementById('taxForm').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    debug('Enter key pressed, triggering calculation');
+                    calculateTax();
+                }
+            });
+        });
+
+        // Tab switching
+        function switchTab(tab) {
+            const calculators = {
+                tax: 'taxCalculator',
+                business: 'businessCalculator',
+                additional: 'additionalCalculator',
+                late: 'lateCalculator',
+                insurance: 'insuranceCalculator'
+            };
+            
+            Object.values(calculators).forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.classList.add('hidden');
+            });
+            
+            const tabs = ['taxTab', 'businessTab', 'additionalTab', 'lateTab', 'insuranceTab'];
+            tabs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.classList.remove('tab-active');
+            });
+            
+            const selectedCalc = document.getElementById(calculators[tab]);
+            const selectedTab = document.getElementById(tab + 'Tab');
+            if (selectedCalc) selectedCalc.classList.remove('hidden');
+            if (selectedTab) selectedTab.classList.add('tab-active');
+        }
+
+        // PDF generation
+        function generatePDF() {
+            debug('Generating PDF...');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4', true);
+            
+            doc.setR2L(true);
+            doc.addFont('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap', 'Cairo', 'normal');
+            doc.setFont('Cairo');
+            
+            doc.setFontSize(24);
+            doc.text('تقرير الضرائب والتأمينات المصرية', 150, 20, { align: 'right' });
+            
+            const date = new Date().toLocaleDateString('ar-EG');
+            doc.setFontSize(12);
+            doc.text('تاريخ التقرير: ' + date, 150, 30, { align: 'right' });
+            
+            doc.setFontSize(16);
+            doc.text('نتائج حساب الضرائب:', 150, 45, { align: 'right' });
+            
+            const results = [
+                ['ضريبة الدخل:', document.getElementById('incomeTaxResult')?.textContent || '0 جنيه'],
+                ['الإعفاء الضريبي:', document.getElementById('taxExemptionResult')?.textContent || '0 جنيه'],
+                ['صافي الضريبة:', document.getElementById('netTaxResult')?.textContent || '0 جنيه']
+            ];
+            
+            let yPos = 55;
+            results.forEach(result => {
+                doc.text(result[0], 150, yPos, { align: 'right' });
+                doc.text(result[1], 80, yPos, { align: 'right' });
+                yPos += 10;
+            });
+            
+            doc.setFontSize(10);
+            doc.text('تم إنشاء هذا التقرير بواسطة حاسبة الضرائب والتأمينات المصرية', 150, 280, { align: 'right' });
+            
+            doc.save('تقرير-الضرائب-والتأمينات.pdf');
+        }
+    </script>
+</body>
+</html>
