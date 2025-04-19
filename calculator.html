@@ -93,6 +93,7 @@
         </div>
 
         <div id="taxCalculator" class="grid md:grid-cols-2 gap-8">
+            <!-- Tax Calculator Section -->
             <section class="glass-effect p-6 neon-border">
                 <h2 class="text-2xl font-bold text-white mb-6">البيانات المطلوبة</h2>
                 <form id="taxForm" class="space-y-6" onsubmit="event.preventDefault(); calculateTax();">
@@ -175,6 +176,50 @@
                 </div>
             </section>
         </div>
+
+        <!-- Business Calculator Section -->
+        <div id="businessCalculator" class="hidden grid md:grid-cols-2 gap-8">
+            <section class="glass-effect p-6 neon-border">
+                <h2 class="text-2xl font-bold text-white mb-6">حاسبة أرباح الأعمال</h2>
+                <form id="businessForm" class="space-y-6" onsubmit="event.preventDefault(); calculateBusinessTax();">
+                    <!-- Assessment calculator inputs moved here -->
+                    <div>
+                        <label class="block text-white mb-2">إجمالي المبيعات</label>
+                        <input type="number" id="totalSales" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل إجمالي المبيعات">
+                    </div>
+                    <div>
+                        <label class="block text-white mb-2">إجمالي المصروفات</label>
+                        <input type="number" id="totalExpenses" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل إجمالي المصروفات">
+                    </div>
+                    <div>
+                        <label class="block text-white mb-2">الإهلاك</label>
+                        <input type="number" id="depreciation" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل قيمة الإهلاك">
+                    </div>
+                    <div class="flex space-x-4" dir="ltr">
+                        <button type="submit" class="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-blue-700 transition duration-300">
+                            حساب أرباح الأعمال
+                        </button>
+                        <button type="reset" onclick="resetBusinessForm()" class="flex-1 bg-red-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-red-700 transition duration-300">
+                            إعادة تعيين
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="glass-effect p-6 neon-border">
+                <h2 class="text-2xl font-bold text-white mb-6">نتائج أرباح الأعمال</h2>
+                <div class="space-y-4">
+                    <div class="result-card glass-effect p-4">
+                        <h3 class="text-white font-bold">صافي الربح</h3>
+                        <p id="businessNetProfit" class="text-2xl neon-text">0 جنيه</p>
+                    </div>
+                    <div class="result-card glass-effect p-4">
+                        <h3 class="text-white font-bold">الضريبة المستحقة</h3>
+                        <p id="businessTaxDue" class="text-2xl neon-text">0 جنيه</p>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
 
     <script>
@@ -232,11 +277,18 @@
 
                 // Calculate based on entity type
                 if (calculator.entityType === 'sole') {
+                    // Determine exemption based on business volume
                     if (calculator.businessVolume <= 600000) {
                         calculator.exemption = 40000;
-                        const taxableIncome = Math.max(0, calculator.netProfit - calculator.exemption);
-                        debug('Taxable income:', taxableIncome);
-                        
+                    } else {
+                        calculator.exemption = 0;
+                    }
+
+                    const taxableIncome = Math.max(0, calculator.netProfit - calculator.exemption);
+                    debug('Taxable income:', taxableIncome);
+
+                    // Apply tax brackets based on business volume and net profit
+                    if (calculator.businessVolume <= 600000) {
                         if (taxableIncome <= 15000) {
                             calculator.tax = taxableIncome * 0.10;
                             debug('Tax bracket: <= 15,000 (10%)', calculator.tax);
@@ -246,13 +298,66 @@
                         } else if (taxableIncome <= 160000) {
                             calculator.tax = 15000 * 0.10 + 15000 * 0.15 + (taxableIncome - 30000) * 0.20;
                             debug('Tax bracket: <= 160,000 (20%)', calculator.tax);
-                        } else {
+                        } else if (taxableIncome <= 360000) {
                             calculator.tax = 15000 * 0.10 + 15000 * 0.15 + 130000 * 0.20 + (taxableIncome - 160000) * 0.225;
-                            debug('Tax bracket: > 160,000 (22.5%)', calculator.tax);
+                            debug('Tax bracket: <= 360,000 (22.5%)', calculator.tax);
+                        } else {
+                            calculator.tax = taxableIncome * 0.25;
+                            debug('Tax bracket: > 360,000 (25%)', calculator.tax);
+                        }
+                    } else if (calculator.businessVolume <= 700000) {
+                        if (taxableIncome <= 45000) {
+                            calculator.tax = taxableIncome * 0.10;
+                            debug('Tax bracket: <= 45,000 (10%)', calculator.tax);
+                        } else if (taxableIncome <= 70000) {
+                            calculator.tax = 45000 * 0.10 + (taxableIncome - 45000) * 0.15;
+                            debug('Tax bracket: <= 70,000 (15%)', calculator.tax);
+                        } else if (taxableIncome <= 200000) {
+                            calculator.tax = 45000 * 0.10 + 25000 * 0.15 + (taxableIncome - 70000) * 0.20;
+                            debug('Tax bracket: <= 200,000 (20%)', calculator.tax);
+                        } else if (taxableIncome <= 400000) {
+                            calculator.tax = 45000 * 0.10 + 25000 * 0.15 + 130000 * 0.20 + (taxableIncome - 200000) * 0.225;
+                            debug('Tax bracket: <= 400,000 (22.5%)', calculator.tax);
+                        } else {
+                            calculator.tax = taxableIncome * 0.25;
+                            debug('Tax bracket: > 400,000 (25%)', calculator.tax);
+                        }
+                    } else if (calculator.businessVolume <= 800000) {
+                        if (taxableIncome <= 70000) {
+                            calculator.tax = taxableIncome * 0.15;
+                            debug('Tax bracket: <= 70,000 (15%)', calculator.tax);
+                        } else if (taxableIncome <= 200000) {
+                            calculator.tax = 70000 * 0.15 + (taxableIncome - 70000) * 0.20;
+                            debug('Tax bracket: <= 200,000 (20%)', calculator.tax);
+                        } else if (taxableIncome <= 400000) {
+                            calculator.tax = 70000 * 0.15 + 130000 * 0.20 + (taxableIncome - 200000) * 0.225;
+                            debug('Tax bracket: <= 400,000 (22.5%)', calculator.tax);
+                        } else {
+                            calculator.tax = taxableIncome * 0.25;
+                            debug('Tax bracket: > 400,000 (25%)', calculator.tax);
+                        }
+                    } else if (calculator.businessVolume <= 900000) {
+                        if (taxableIncome <= 200000) {
+                            calculator.tax = taxableIncome * 0.20;
+                            debug('Tax bracket: <= 200,000 (20%)', calculator.tax);
+                        } else if (taxableIncome <= 400000) {
+                            calculator.tax = 200000 * 0.20 + (taxableIncome - 200000) * 0.225;
+                            debug('Tax bracket: <= 400,000 (22.5%)', calculator.tax);
+                        } else {
+                            calculator.tax = taxableIncome * 0.25;
+                            debug('Tax bracket: > 400,000 (25%)', calculator.tax);
+                        }
+                    } else if (calculator.businessVolume <= 1000000) {
+                        if (taxableIncome <= 400000) {
+                            calculator.tax = taxableIncome * 0.225;
+                            debug('Tax bracket: <= 400,000 (22.5%)', calculator.tax);
+                        } else {
+                            calculator.tax = taxableIncome * 0.25;
+                            debug('Tax bracket: > 400,000 (25%)', calculator.tax);
                         }
                     } else {
-                        calculator.tax = calculator.netProfit * 0.225;
-                        debug('Fixed tax rate (22.5%)', calculator.tax);
+                        calculator.tax = taxableIncome * 0.25;
+                        debug('Tax bracket: > 1,000,000 (25%)', calculator.tax);
                     }
                 } else {
                     calculator.tax = calculator.netProfit * 0.225;
