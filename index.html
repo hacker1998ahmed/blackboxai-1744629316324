@@ -120,79 +120,10 @@
                         <input type="number" id="businessVolume" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل حجم الأعمال">
                     </div>
 
-                    <!-- Net Profit Calculation Method -->
-                    <div id="netProfitInput">
-                        <div class="mb-4">
-                            <label class="block text-white mb-2">طريقة حساب صافي الربح</label>
-                            <select id="profitCalculationMethod" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d">
-                                <option value="direct">إدخال صافي الربح مباشرة</option>
-                                <option value="percentage">حساب من حجم الأعمال والنسبة</option>
-                            </select>
-                        </div>
-
-                        <!-- Direct Net Profit Input -->
-                        <div id="directProfitInput">
-                            <label class="block text-white mb-2">صافي الربح</label>
-                            <input type="number" id="netProfit" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل صافي الربح">
-                        </div>
-
-                        <!-- Percentage Based Calculation (initially hidden) -->
-                        <div id="percentageInput" class="hidden">
-                            <div class="mb-4">
-                                <label class="block text-white mb-2">نسبة صافي الربح من حجم الأعمال (%)</label>
-                                <input type="number" id="profitPercentage" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل النسبة المئوية">
-                            </div>
-                            <div class="text-gray-400 text-sm">
-                                صافي الربح المحسوب: <span id="calculatedProfit">0</span> جنيه
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Sales and Expenses (initially hidden) -->
-                    <div id="salesExpensesInputs" class="hidden space-y-4">
-                        <div>
-                            <label class="block text-white mb-2">المخزون أول المدة</label>
-                            <input type="number" id="beginningInventory" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المخزون أول المدة">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">المشتريات المحلية</label>
-                            <input type="number" id="localPurchases" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المشتريات المحلية">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">المشتريات المستوردة</label>
-                            <input type="number" id="importPurchases" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المشتريات المستوردة">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">الجمارك</label>
-                            <input type="number" id="customs" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل الجمارك">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">المشتريات غير المصرح بها</label>
-                            <input type="number" id="undeclaredPurchases" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المشتريات غير المصرح بها">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">المخزون آخر المدة</label>
-                            <input type="number" id="endingInventory" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المخزون آخر المدة">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">المبيعات</label>
-                            <input type="number" id="sales" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المبيعات">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">المصروفات</label>
-                            <input type="number" id="expenses" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل المصروفات">
-                        </div>
-                        <div>
-                            <label class="block text-white mb-2">الإهلاك</label>
-                            <input type="number" id="depreciation" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل الإهلاك">
-                        </div>
-                        <div class="bg-gray-700 bg-opacity-50 p-4 rounded-lg">
-                            <div class="text-white">
-                                <div class="mb-2">تكلفة المشتريات: <span id="purchaseCost">0</span> جنيه</div>
-                                <div class="mb-2">إجمالي الربح: <span id="grossProfit">0</span> جنيه</div>
-                                <div>صافي الربح: <span id="calculatedNetProfit">0</span> جنيه</div>
-                            </div>
-                        </div>
+                    <!-- Net Profit Input -->
+                    <div>
+                        <label class="block text-white mb-2">صافي الربح</label>
+                        <input type="number" id="netProfit" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل صافي الربح">
                     </div>
 
                     <div class="flex space-x-4" dir="ltr">
@@ -266,45 +197,37 @@
             <div id="businessCalculator" class="grid md:grid-cols-2 gap-8 hidden">
                 <section class="glass-effect p-4 neon-border">
                     <h2 class="text-2xl font-bold text-white mb-4">حاسبة أرباح الأعمال</h2>
-                <form id="businessForm" class="space-y-6">
-                        <!-- Period Type Selection -->
-                        <div class="flex justify-between mb-4">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="periodType" value="monthly" checked class="form-radio text-blue-600">
-                                <span class="ml-2 text-white">إدخال قيم شهرية</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="periodType" value="annual" class="form-radio text-blue-600">
-                                <span class="ml-2 text-white">إدخال قيم سنوية</span>
-                            </label>
+                    <form id="businessForm" class="space-y-6">
+                        <!-- Business Volume -->
+                        <div>
+                            <label class="block text-white mb-2">حجم الأعمال السنوي</label>
+                            <input type="number" id="businessVolume" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل حجم الأعمال">
                         </div>
 
-                        <!-- Facility Type -->
+                        <!-- Net Profit Input -->
+                        <div>
+                            <label class="block text-white mb-2">صافي الربح</label>
+                            <input type="number" id="netProfit" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل صافي الربح">
+                        </div>
+
+                        <!-- Entity Type -->
                         <div>
                             <label class="block text-white mb-2">نوع المنشأة</label>
-                            <select id="facilityType" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d">
-                                <option value="private">خاص</option>
-                                <option value="government">حكومي</option>
-                                <option value="public">قطاع عام</option>
+                            <select id="entityType" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d">
+                                <option value="sole">منشأة فردية</option>
+                                <option value="company">شركة</option>
                             </select>
                         </div>
 
-                        <div class="space-y-4">
-                            <div>
-                                <h3 class="text-white text-lg mb-2">الأجر الشهري</h3>
-                                <input type="number" id="monthlySalaryBusiness" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل الأجر الشهري" min="1" required>
-                            </div>
-                            <div>
-                                <h3 class="text-white text-lg mb-2">الاشتراكات والخصومات</h3>
-                                <input type="number" id="deductions" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل الاشتراكات والخصومات" value="0">
-                                <div class="text-gray-400 text-xs mt-1">الاشتراكات، الخصومات، التخفيضات</div>
-                            </div>
-                            <div>
-                                <h3 class="text-white text-lg mb-2">البدلات المعفاة (شهري)</h3>
-                                <input type="number" id="exemptAllowances" class="w-full bg-gray-800 text-white p-3 rounded-lg input-3d" placeholder="أدخل البدلات المعفاة" value="0">
-                                <div class="text-gray-400 text-xs mt-1">البدلات المعفاة من التأمين، بحد أقصى 30% من قيمة الاشتراك</div>
-                            </div>
+                        <div class="grid grid-cols-1 gap-4 mt-4">
+                            <button type="button" onclick="calculateBusinessEarnings()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-blue-700 transition duration-300">
+                                حساب الأرباح
+                            </button>
+                            <button type="reset" onclick="resetBusinessForm()" class="w-full bg-red-600 text-white py-3 px-6 rounded-lg neon-border hover:bg-red-700 transition duration-300">
+                                إعادة تعيين
+                            </button>
                         </div>
+                    </form>
 
                     <!-- Insurance Options -->
                     <div class="flex items-center justify-between">
@@ -381,41 +304,34 @@
             <section class="glass-effect p-6 neon-border">
                 <h2 class="text-2xl font-bold text-white mb-6">النتائج</h2>
                 <div class="space-y-6">
-                    <!-- Summary -->
-                    <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg mb-4">
-                        <h3 class="text-xl font-bold text-white mb-4">الملخص</h3>
-                        <div class="text-center text-white">
-                            <p>الإجمالي (سنوي: <span id="annualTotal" class="font-bold text-blue-400">0</span>) (شهري: <span id="monthlyTotal" class="font-bold text-blue-400">0</span>)</p>
+                    <!-- Tax Results -->
+                    <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-white mb-4">نتائج حساب الضريبة</h3>
+                        <div class="grid grid-cols-2 gap-4 text-white">
+                            <div>
+                                <p class="text-gray-400">حجم الأعمال</p>
+                                <p id="businessVolumeResult" class="text-2xl font-bold text-blue-400">0 جنيه</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">صافي الربح</p>
+                                <p id="netProfitResult" class="text-2xl font-bold text-blue-400">0 جنيه</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">الإعفاء الضريبي</p>
+                                <p id="taxExemptionResult" class="text-2xl font-bold text-blue-400">0 جنيه</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-400">الضريبة المستحقة</p>
+                                <p id="taxDueResult" class="text-2xl font-bold text-blue-400">0 جنيه</p>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Monthly Breakdown -->
-                    <div class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold text-white mb-4">التفاصيل الشهرية</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-white">
-                                <thead>
-                                    <tr class="text-gray-400">
-                                        <th class="text-right p-2">الشهر</th>
-                                        <th class="text-right p-2">الإعفاء الشخصي</th>
-                                        <th class="text-right p-2">وعاء الضريبة</th>
-                                        <th class="text-right p-2">الضريبة</th>
-                                        <th class="text-right p-2">الصافي</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="monthlyBreakdown">
-                                    <!-- Monthly rows will be added here dynamically -->
-                                </tbody>
-                                <tfoot class="border-t border-gray-600">
-                                    <tr class="font-bold">
-                                        <td class="p-2">الإجمالي</td>
-                                        <td id="totalPersonalExemption" class="p-2">0</td>
-                                        <td id="totalTaxBase" class="p-2">0</td>
-                                        <td id="totalTax" class="p-2">0</td>
-                                        <td id="totalNet" class="p-2">0</td>
-                                    </tr>
-                                </tfoot>
-                            </table>
+                    <!-- Tax Brackets -->
+                    <div id="taxBracketsResult" class="bg-gray-800 bg-opacity-50 p-4 rounded-lg">
+                        <h3 class="text-xl font-bold text-white mb-4">شرائح الضريبة المطبقة</h3>
+                        <div class="text-gray-300">
+                            <!-- Tax brackets will be displayed here -->
                         </div>
                     </div>
                 </div>
@@ -870,6 +786,7 @@
         function calculateSoleProprietorshipTax(netProfit, businessVolume) {
             let tax = 0;
             let exemption = 0;
+            let taxBrackets = '';
 
             // Apply exemption only if business volume is less than or equal to 600,000
             if (businessVolume <= 600000) {
@@ -880,123 +797,162 @@
                 let remainingProfit = netProfit;
                 
                 if (remainingProfit <= 40000) {
-                    return { tax: 0, exemption }; // 0% for first 40,000
+                    taxBrackets = '0% حتى 40,000';
+                    return { tax: 0, exemption, taxBrackets }; // 0% for first 40,000
                 }
                 
-                if (remainingProfit > 40000 && remainingProfit <= 55000) {
-                    tax = (remainingProfit - 40000) * 0.10; // 10% from 40,000 to 55,000
+                if (remainingProfit <= 15000) {
+                    tax = remainingProfit * 0.10;
+                    taxBrackets = '10% حتى 15,000';
+                } else if (remainingProfit <= 30000) {
+                    tax = 15000 * 0.10 + (remainingProfit - 15000) * 0.15;
+                    taxBrackets = '10% حتى 15,000 ثم 15% حتى 30,000';
+                } else if (remainingProfit <= 160000) {
+                    tax = 15000 * 0.10 + 15000 * 0.15 + (remainingProfit - 30000) * 0.20;
+                    taxBrackets = '10% حتى 15,000 ثم 15% حتى 30,000 ثم 20% حتى 160,000';
+                } else if (remainingProfit <= 360000) {
+                    tax = 15000 * 0.10 + 15000 * 0.15 + 130000 * 0.20 + (remainingProfit - 160000) * 0.225;
+                    taxBrackets = '10% حتى 15,000 ثم 15% حتى 30,000 ثم 20% حتى 160,000 ثم 22.5% حتى 360,000';
                 }
-                if (remainingProfit > 55000 && remainingProfit <= 70000) {
-                    tax = (55000 - 40000) * 0.10 + (remainingProfit - 55000) * 0.15; // 15% from 55,000 to 70,000
+            } else if (businessVolume <= 700000) {
+                // For business volume 600,000-700,000
+                if (netProfit <= 45000) {
+                    tax = netProfit * 0.10;
+                    taxBrackets = '10% حتى 45,000';
+                } else if (netProfit <= 70000) {
+                    tax = 45000 * 0.10 + (netProfit - 45000) * 0.15;
+                    taxBrackets = '10% حتى 45,000 ثم 15% حتى 70,000';
+                } else if (netProfit <= 200000) {
+                    tax = 45000 * 0.10 + 25000 * 0.15 + (netProfit - 70000) * 0.20;
+                    taxBrackets = '10% حتى 45,000 ثم 15% حتى 70,000 ثم 20% حتى 200,000';
+                } else if (netProfit <= 400000) {
+                    tax = 45000 * 0.10 + 25000 * 0.15 + 130000 * 0.20 + (netProfit - 200000) * 0.225;
+                    taxBrackets = '10% حتى 45,000 ثم 15% حتى 70,000 ثم 20% حتى 200,000 ثم 22.5% حتى 400,000';
+                } else {
+                    tax = 45000 * 0.10 + 25000 * 0.15 + 130000 * 0.20 + 200000 * 0.225 + (netProfit - 400000) * 0.25;
+                    taxBrackets = '10% حتى 45,000 ثم 15% حتى 70,000 ثم 20% حتى 200,000 ثم 22.5% حتى 400,000 ثم 25% للباقي';
                 }
-                if (remainingProfit > 70000 && remainingProfit <= 200000) {
-                    tax = (55000 - 40000) * 0.10 + (70000 - 55000) * 0.15 + (remainingProfit - 70000) * 0.20; // 20% from 70,000 to 200,000
+            } else if (businessVolume <= 800000) {
+                // For business volume 700,000-800,000
+                if (netProfit <= 70000) {
+                    tax = netProfit * 0.15;
+                    taxBrackets = '15% حتى 70,000';
+                } else if (netProfit <= 200000) {
+                    tax = 70000 * 0.15 + (netProfit - 70000) * 0.20;
+                    taxBrackets = '15% حتى 70,000 ثم 20% حتى 200,000';
+                } else if (netProfit <= 400000) {
+                    tax = 70000 * 0.15 + 130000 * 0.20 + (netProfit - 200000) * 0.225;
+                    taxBrackets = '15% حتى 70,000 ثم 20% حتى 200,000 ثم 22.5% حتى 400,000';
+                } else {
+                    tax = 70000 * 0.15 + 130000 * 0.20 + 200000 * 0.225 + (netProfit - 400000) * 0.25;
+                    taxBrackets = '15% حتى 70,000 ثم 20% حتى 200,000 ثم 22.5% حتى 400,000 ثم 25% للباقي';
                 }
-                if (remainingProfit > 200000 && remainingProfit <= 400000) {
-                    tax = (55000 - 40000) * 0.10 + (70000 - 55000) * 0.15 + (200000 - 70000) * 0.20 + (remainingProfit - 200000) * 0.225; // 22.5% from 200,000 to 400,000
-                }
-                if (remainingProfit > 400000 && remainingProfit <= 1200000) {
-                    tax = (55000 - 40000) * 0.10 + (70000 - 55000) * 0.15 + (200000 - 70000) * 0.20 + (400000 - 200000) * 0.225 + (remainingProfit - 400000) * 0.25; // 25% from 400,000 to 1,200,000
-                }
-                if (remainingProfit > 1200000) {
-                    tax = (55000 - 40000) * 0.10 + (70000 - 55000) * 0.15 + (200000 - 70000) * 0.20 + (400000 - 200000) * 0.225 + (1200000 - 400000) * 0.25 + (remainingProfit - 1200000) * 0.275; // 27.5% over 1,200,000
+            } else if (businessVolume <= 900000) {
+                // For business volume 800,000-900,000
+                if (netProfit <= 200000) {
+                    tax = netProfit * 0.20;
+                    taxBrackets = '20% حتى 200,000';
+                } else if (netProfit <= 400000) {
+                    tax = 200000 * 0.20 + (netProfit - 200000) * 0.225;
+                    taxBrackets = '20% حتى 200,000 ثم 22.5% حتى 400,000';
+                } else {
+                    tax = 200000 * 0.20 + 200000 * 0.225 + (netProfit - 400000) * 0.25;
+                    taxBrackets = '20% حتى 200,000 ثم 22.5% حتى 400,000 ثم 25% للباقي';
                 }
             } else {
-                // For business volume > 600,000, start from specific rates based on volume
-                if (businessVolume <= 700000) {
-                    tax = netProfit * 0.10; // Start from 10%
-                } else if (businessVolume <= 800000) {
-                    tax = netProfit * 0.15; // Start from 15%
-                } else if (businessVolume <= 900000) {
-                    tax = netProfit * 0.20; // Start from 20%
+                // For business volume > 900,000
+                if (netProfit <= 400000) {
+                    tax = netProfit * 0.225;
+                    taxBrackets = '22.5% حتى 400,000';
                 } else {
-                    tax = netProfit * 0.225; // Start from 22.5%
+                    tax = 400000 * 0.225 + (netProfit - 400000) * 0.25;
+                    taxBrackets = '22.5% حتى 400,000 ثم 25% للباقي';
                 }
             }
 
-            return { tax, exemption };
+            return { tax, exemption, taxBrackets };
         }
 
         // Calculate Business Earnings Tax (Law No. 7 of 2024)
-        function calculateBusinessEarnings(e) {
-            e.preventDefault();
+        function calculateBusinessEarnings() {
             try {
                 const monthlySalary = parseFloat(document.getElementById('monthlySalaryBusiness').value) || 0;
                 const deductions = parseFloat(document.getElementById('deductions').value) || 0;
                 const calculateInsurance = document.getElementById('calculateInsuranceBusiness').checked;
+                const entityType = document.getElementById('entityType').value;
+                const personalExemption = 20000 / 12; // Monthly personal exemption
+
+                // Initialize totals
+                let totalTax = 0;
+                let totalNet = 0;
+                let totalTaxBase = 0;
+
+                // Calculate insurance amounts for 2025
+                const insuranceSalary = Math.min(Math.max(monthlySalary, 2300), Math.round(2300 * Math.pow(1.15, 4)));
+                const employerShare = insuranceSalary * (entityType === 'government' ? 0.1725 : entityType === 'public' ? 0.1825 : 0.1875);
+                const employeeShare = insuranceSalary * 0.11;
+
+                // Calculate monthly deductions and tax base
+                const monthlyDeductions = employeeShare + deductions;
+                const monthlyTaxBase = monthlySalary - monthlyDeductions - personalExemption;
+                
+                // Calculate monthly tax and net amount
+                const monthlyTax = calculateMonthlyTax(monthlyTaxBase);
+                const netAmount = monthlySalary - monthlyTax - monthlyDeductions;
+
+                // Update running totals
+                totalTax += monthlyTax;
+                totalNet += netAmount;
+                totalTaxBase += monthlyTaxBase;
 
                 // Initialize monthly breakdown table
                 const monthlyBreakdown = document.getElementById('monthlyBreakdown');
                 monthlyBreakdown.innerHTML = '';
 
-                // Monthly calculations
-                const months = [];
-                const personalExemption = 20000 / 12; // Monthly personal exemption
-                let totalTax = 0;
-                let totalNet = 0;
-                let totalTaxBase = 0;
-
+                // Calculate monthly breakdown
                 for (let i = 0; i < 12; i++) {
-                    const date = new Date(2024, i, 7);
+                    const date = new Date(2024, i, 1);
                     
-                    // Calculate insurance for this month
-                    let monthlyInsurance = 0;
-                    if (calculateInsurance) {
-                        const minSalary = 2300; // New minimum from 2025
-                        const maxSalary = Math.round(minSalary * Math.pow(1.15, 4)); // 15% annual increase until 2029
-                        const insurableSalary = Math.min(Math.max(monthlySalary, minSalary), maxSalary);
-                        monthlyInsurance = insurableSalary * 0.11;
-                    }
-
-                    // Calculate monthly tax base
-                    // Calculate insurance amounts for 2025
-                    const insuranceSalary = Math.min(Math.max(monthlySalary, 2300), Math.round(2300 * Math.pow(1.15, 4)));
-                    const employerShare = insuranceSalary * (entityType === 'government' ? 0.1725 : entityType === 'public' ? 0.1825 : 0.1875);
-                    const employeeShare = insuranceSalary * 0.11;
-
-                    // Calculate monthly deductions and tax base
-                    const monthlyDeductions = employeeShare + deductions;
-                    const monthlyTaxBase = monthlySalary - monthlyDeductions - personalExemption;
-                    
-                    // Calculate monthly tax and net amount
-                    const monthlyTax = calculateMonthlyTax(monthlyTaxBase);
-                    const netAmount = monthlySalary - monthlyTax - monthlyDeductions;
-
-                    // Update running totals
-                    totalTax += monthlyTax;
-                    totalNet += netAmount;
-                    totalTaxBase += monthlyTaxBase;
-
                     // Add row to table
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td class="p-2">${date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                        <td class="p-2">${date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' })}</td>
                         <td class="p-2">${Math.round(personalExemption).toLocaleString('ar-EG')}</td>
                         <td class="p-2">${Math.round(monthlyTaxBase).toLocaleString('ar-EG')}</td>
                         <td class="p-2">${Math.round(monthlyTax).toLocaleString('ar-EG')}</td>
                         <td class="p-2">${Math.round(netAmount).toLocaleString('ar-EG')}</td>
                     `;
                     monthlyBreakdown.appendChild(row);
-
-                    // Update insurance details
-                    document.getElementById('insuranceSalary').textContent = `${Math.round(insuranceSalary).toLocaleString('ar-EG')} (سنوي: ${Math.round(insuranceSalary * 12).toLocaleString('ar-EG')})`;
-                    document.getElementById('employerShare').textContent = `${Math.round(employerShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employerShare * 12).toLocaleString('ar-EG')})`;
-                    document.getElementById('employeeShare').textContent = `${Math.round(employeeShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employeeShare * 12).toLocaleString('ar-EG')})`;
                 }
 
-                // Update monthly and annual totals
-                document.getElementById('monthlyDeductions').textContent = Math.round(monthlyDeductions).toLocaleString('ar-EG');
-                document.getElementById('annualDeductions').textContent = Math.round(monthlyDeductions * 12).toLocaleString('ar-EG');
+                // Update insurance details
+                document.getElementById('insuranceSalary').textContent = `${Math.round(insuranceSalary).toLocaleString('ar-EG')} (سنوي: ${Math.round(insuranceSalary * 12).toLocaleString('ar-EG')})`;
+                document.getElementById('employerShare').textContent = `${Math.round(employerShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employerShare * 12).toLocaleString('ar-EG')})`;
+                document.getElementById('employeeShare').textContent = `${Math.round(employeeShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employeeShare * 12).toLocaleString('ar-EG')})`;
 
-                // Update summary
-                document.getElementById('monthlyTotal').textContent = Math.round(monthlySalary - (totalTax/12)).toLocaleString('ar-EG');
-                document.getElementById('annualTotal').textContent = Math.round(monthlySalary * 12 - totalTax).toLocaleString('ar-EG');
-                
-                // Update totals
-                document.getElementById('totalPersonalExemption').textContent = Math.round(personalExemption * 12).toLocaleString('ar-EG');
-                document.getElementById('totalTaxBase').textContent = Math.round(totalTaxBase).toLocaleString('ar-EG');
-                document.getElementById('totalTax').textContent = Math.round(totalTax).toLocaleString('ar-EG');
-                document.getElementById('totalNet').textContent = Math.round(totalNet).toLocaleString('ar-EG');
+                // Update monthly and annual totals
+                document.getElementById('monthlyTotal').textContent = Math.round(monthlySalary - monthlyTax).toLocaleString('ar-EG');
+                document.getElementById('annualTotal').textContent = Math.round((monthlySalary - monthlyTax) * 12).toLocaleString('ar-EG');
+
+                // Update totals with animation
+                const elements = {
+                    totalPersonalExemption: personalExemption * 12,
+                    totalTaxBase: totalTaxBase,
+                    totalTax: totalTax,
+                    totalNet: totalNet
+                };
+
+                Object.entries(elements).forEach(([id, value]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.transition = 'all 0.3s ease-out';
+                        element.style.transform = 'scale(1.1)';
+                        element.textContent = Math.round(value).toLocaleString('ar-EG');
+                        setTimeout(() => {
+                            element.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                });
 
             } catch (error) {
                 console.error('Error in calculation:', error);
@@ -1012,73 +968,16 @@
         // Tax Calculation Function
         function calculateTax() {
             try {
-                const form = document.getElementById('taxForm');
                 const entityType = document.getElementById('entityType').value;
-                const accountingMethod = document.getElementById('accountingMethod').value;
                 const businessVolume = parseFloat(document.getElementById('businessVolume').value) || 0;
-                const profitCalculationMethod = document.getElementById('profitCalculationMethod').value;
+                const netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
 
                 // Reset error messages
                 document.querySelectorAll('.error-message').forEach(el => el.remove());
 
-                let netProfit = 0;
                 let tax = 0;
                 let exemption = 0;
-                let taxBrackets = '';
-
-                // Calculate net profit based on selected method
-                if (accountingMethod === 'calculate') {
-                    const values = {
-                        beginningInventory: parseFloat(document.getElementById('beginningInventory').value) || 0,
-                        localPurchases: parseFloat(document.getElementById('localPurchases').value) || 0,
-                        importPurchases: parseFloat(document.getElementById('importPurchases').value) || 0,
-                        customs: parseFloat(document.getElementById('customs').value) || 0,
-                        undeclaredPurchases: parseFloat(document.getElementById('undeclaredPurchases').value) || 0,
-                        endingInventory: parseFloat(document.getElementById('endingInventory').value) || 0,
-                        sales: parseFloat(document.getElementById('sales').value) || 0,
-                        expenses: parseFloat(document.getElementById('expenses').value) || 0,
-                        depreciation: parseFloat(document.getElementById('depreciation').value) || 0
-                    };
-
-                    // Calculate purchase cost
-                    const purchaseCost = values.beginningInventory + values.localPurchases + values.importPurchases + 
-                                       values.customs + values.undeclaredPurchases - values.endingInventory;
-
-                    // Calculate gross profit
-                    const grossProfit = values.sales - purchaseCost;
-
-                    // Calculate net profit
-                    netProfit = grossProfit - values.expenses + values.depreciation;
-
-                    // Update purchase cost display
-                    document.getElementById('purchaseCost').textContent = Math.round(purchaseCost).toLocaleString('ar-EG');
-                    document.getElementById('grossProfit').textContent = Math.round(grossProfit).toLocaleString('ar-EG');
-                    document.getElementById('calculatedNetProfit').textContent = Math.round(netProfit).toLocaleString('ar-EG');
-
-                } else if (accountingMethod === 'netProfit') {
-                    if (profitCalculationMethod === 'percentage') {
-                        const percentage = parseFloat(document.getElementById('profitPercentage').value) || 0;
-                        netProfit = businessVolume * (percentage / 100);
-                        document.getElementById('calculatedProfit').textContent = Math.round(netProfit).toLocaleString('ar-EG');
-                    } else {
-                        netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
-                    }
-                } else if (accountingMethod === 'article3') {
-                    tax = calculateArticle3Tax(businessVolume);
-                    taxBrackets = `
-                        <div class="mt-4 p-4 bg-gray-800 bg-opacity-50 rounded-lg">
-                            <h4 class="text-white font-bold mb-2">شرائح ضريبة المادة 3:</h4>
-                            <ul class="text-gray-300 text-sm space-y-1">
-                                <li>حتى 250,000: 1,000 جنيه</li>
-                                <li>حتى 500,000: 2,500 جنيه</li>
-                                <li>حتى 1,000,000: 5,000 جنيه</li>
-                                <li>حتى 2,000,000: 0.5%</li>
-                                <li>حتى 3,000,000: 0.75%</li>
-                                <li>حتى 10,000,000: 1%</li>
-                                <li>أكثر من 10,000,000: 1%</li>
-                            </ul>
-                        </div>`;
-                }
+                let result = { tax: 0, exemption: 0, taxBrackets: '' };
 
                 // Validate inputs
                 if (!businessVolume || businessVolume <= 0) {
@@ -1161,7 +1060,21 @@
                 // Display tax brackets
                 const taxBracketsContainer = document.getElementById('taxBrackets');
                 if (taxBracketsContainer) {
-                    taxBracketsContainer.innerHTML = taxBrackets;
+                    if (entityType === 'sole') {
+                        taxBracketsContainer.innerHTML = `
+                            <div class="mt-4 p-4 bg-gray-800 bg-opacity-50 rounded-lg">
+                                <h4 class="text-white font-bold mb-2">شرائح الضريبة المطبقة:</h4>
+                                <p class="text-gray-300 mb-2">حجم الأعمال: ${businessVolume.toLocaleString('ar-EG')} جنيه</p>
+                                <p class="text-gray-300 mb-2">الإعفاء: ${businessVolume <= 600000 ? '40,000' : '0'} جنيه</p>
+                                <div class="text-gray-300 text-sm space-y-1">${result.taxBrackets}</div>
+                            </div>`;
+                    } else {
+                        taxBracketsContainer.innerHTML = `
+                            <div class="mt-4 p-4 bg-gray-800 bg-opacity-50 rounded-lg">
+                                <h4 class="text-white font-bold mb-2">ضريبة الشركات:</h4>
+                                <p class="text-gray-300">معدل ثابت: 22.5% من صافي الربح</p>
+                            </div>`;
+                    }
                 }
 
             } catch (error) {
@@ -1338,92 +1251,6 @@
             return tax;
         }
 
-        // Business Earnings Calculator
-        function calculateBusinessEarnings() {
-            try {
-                const monthlySalary = parseFloat(document.getElementById('monthlySalaryBusiness').value) || 0;
-                const deductions = parseFloat(document.getElementById('deductions').value) || 0;
-                const calculateInsurance = document.getElementById('calculateInsuranceBusiness').checked;
-                const entityType = document.getElementById('entityType').value;
-                const personalExemption = 20000 / 12; // Monthly personal exemption
-
-                // Initialize totals
-                let totalTax = 0;
-                let totalNet = 0;
-                let totalTaxBase = 0;
-
-                // Calculate insurance amounts for 2025
-                const insuranceSalary = Math.min(Math.max(monthlySalary, 2300), Math.round(2300 * Math.pow(1.15, 4)));
-                const employerShare = insuranceSalary * (entityType === 'government' ? 0.1725 : entityType === 'public' ? 0.1825 : 0.1875);
-                const employeeShare = insuranceSalary * 0.11;
-
-                // Calculate monthly deductions and tax base
-                const monthlyDeductions = employeeShare + deductions;
-                const monthlyTaxBase = monthlySalary - monthlyDeductions - personalExemption;
-                
-                // Calculate monthly tax and net amount
-                const monthlyTax = calculateMonthlyTax(monthlyTaxBase);
-                const netAmount = monthlySalary - monthlyTax - monthlyDeductions;
-
-                // Update running totals
-                totalTax += monthlyTax;
-                totalNet += netAmount;
-                totalTaxBase += monthlyTaxBase;
-
-                // Initialize monthly breakdown table
-                const monthlyBreakdown = document.getElementById('monthlyBreakdown');
-                monthlyBreakdown.innerHTML = '';
-
-                // Calculate monthly breakdown
-                for (let i = 0; i < 12; i++) {
-                    const date = new Date(2024, i, 1);
-                    
-                    // Add row to table
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="p-2">${date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' })}</td>
-                        <td class="p-2">${Math.round(personalExemption).toLocaleString('ar-EG')}</td>
-                        <td class="p-2">${Math.round(monthlyTaxBase).toLocaleString('ar-EG')}</td>
-                        <td class="p-2">${Math.round(monthlyTax).toLocaleString('ar-EG')}</td>
-                        <td class="p-2">${Math.round(netAmount).toLocaleString('ar-EG')}</td>
-                    `;
-                    monthlyBreakdown.appendChild(row);
-                }
-
-                // Update insurance details
-                document.getElementById('insuranceSalary').textContent = `${Math.round(insuranceSalary).toLocaleString('ar-EG')} (سنوي: ${Math.round(insuranceSalary * 12).toLocaleString('ar-EG')})`;
-                document.getElementById('employerShare').textContent = `${Math.round(employerShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employerShare * 12).toLocaleString('ar-EG')})`;
-                document.getElementById('employeeShare').textContent = `${Math.round(employeeShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employeeShare * 12).toLocaleString('ar-EG')})`;
-
-                // Update monthly and annual totals
-                document.getElementById('monthlyTotal').textContent = Math.round(monthlySalary - monthlyTax).toLocaleString('ar-EG');
-                document.getElementById('annualTotal').textContent = Math.round((monthlySalary - monthlyTax) * 12).toLocaleString('ar-EG');
-
-                // Update totals with animation
-                const elements = {
-                    totalPersonalExemption: personalExemption * 12,
-                    totalTaxBase: totalTaxBase,
-                    totalTax: totalTax,
-                    totalNet: totalNet
-                };
-
-                Object.entries(elements).forEach(([id, value]) => {
-                    const element = document.getElementById(id);
-                    if (element) {
-                        element.style.transition = 'all 0.3s ease-out';
-                        element.style.transform = 'scale(1.1)';
-                        element.textContent = Math.round(value).toLocaleString('ar-EG');
-                        setTimeout(() => {
-                            element.style.transform = 'scale(1)';
-                        }, 300);
-                    }
-                });
-
-            } catch (error) {
-                console.error('Error in calculation:', error);
-                alert('حدث خطأ في الحساب. يرجى التحقق من المدخلات');
-            }
-        }
 
         // Reset Business Form
         function resetBusinessForm() {
@@ -1604,14 +1431,29 @@
         window.addEventListener('load', function() {
             initializeYearDropdowns();
             
-            // Add form submit handlers
-            document.getElementById('taxForm')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                calculateTax();
-            });
-            document.getElementById('businessForm')?.addEventListener('submit', calculateBusinessEarnings);
-            document.getElementById('additionalTaxForm')?.addEventListener('submit', calculateAdditionalTax);
-            document.getElementById('lateFeeForm')?.addEventListener('submit', calculateLateFee);
+            // Add form submit handlers with null checks
+            const taxForm = document.getElementById('taxForm');
+            if (taxForm) {
+                taxForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    calculateTax();
+                });
+            }
+
+            const businessForm = document.getElementById('businessForm');
+            if (businessForm) {
+                businessForm.addEventListener('submit', calculateBusinessEarnings);
+            }
+
+            const additionalTaxForm = document.getElementById('additionalTaxForm');
+            if (additionalTaxForm) {
+                additionalTaxForm.addEventListener('submit', calculateAdditionalTax);
+            }
+
+            const lateFeeForm = document.getElementById('lateFeeForm');
+            if (lateFeeForm) {
+                lateFeeForm.addEventListener('submit', calculateLateFee);
+            }
 
             // Add input change handlers for tax calculation
             const taxInputs = [
@@ -1630,17 +1472,25 @@
                 }
             });
 
-            // Add period type change handler
-            document.querySelectorAll('input[name="periodType"]').forEach(radio => {
-                radio.addEventListener('change', function() {
-                    const isMonthly = this.value === 'monthly';
-                    document.getElementById('monthlySalaryBusiness').placeholder = 
-                        isMonthly ? 'أدخل الأجر الشهري' : 'أدخل الأجر السنوي';
+            // Add period type change handler with null check
+            const periodTypeRadios = document.querySelectorAll('input[name="periodType"]');
+            if (periodTypeRadios.length > 0) {
+                periodTypeRadios.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        const isMonthly = this.value === 'monthly';
+                        const salaryInput = document.getElementById('monthlySalaryBusiness');
+                        if (salaryInput) {
+                            salaryInput.placeholder = isMonthly ? 'أدخل الأجر الشهري' : 'أدخل الأجر السنوي';
+                        }
+                    });
                 });
-            });
+            }
 
-            // Initial calculation
-            calculateTax();
+            // Initial calculation with null check
+            const taxFormExists = document.getElementById('taxForm');
+            if (taxFormExists) {
+                calculateTax();
+            }
         });
     </script>
 </body>
