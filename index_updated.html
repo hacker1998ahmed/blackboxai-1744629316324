@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة الضرائب والتأمينات المصرية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Rest of the file content remains the same -->
+</head>
+<body>
+    <!-- Rest of the HTML content remains the same -->
+    <script>
+        // Business Earnings Calculator
+        function calculateBusinessEarnings() {
+            try {
+                const monthlySalary = parseFloat(document.getElementById('monthlySalaryBusiness').value) || 0;
+                const deductions = parseFloat(document.getElementById('deductions').value) || 0;
+                const calculateInsurance = document.getElementById('calculateInsuranceBusiness').checked;
+                const entityType = document.getElementById('entityType').value;
+                const personalExemption = 20000 / 12; // Monthly personal exemption
+
+                // Initialize totals
+                let totalTax = 0;
+                let totalNet = 0;
+                let totalTaxBase = 0;
+
+                // Calculate insurance amounts for 2025
+                const insuranceSalary = Math.min(Math.max(monthlySalary, 2300), Math.round(2300 * Math.pow(1.15, 4)));
+                const employerShare = insuranceSalary * (entityType === 'government' ? 0.1725 : entityType === 'public' ? 0.1825 : 0.1875);
+                const employeeShare = insuranceSalary * 0.11;
+
+                // Calculate monthly deductions and tax base
+                const monthlyDeductions = employeeShare + deductions;
+                const monthlyTaxBase = monthlySalary - monthlyDeductions - personalExemption;
+                
+                // Calculate monthly tax and net amount
+                const monthlyTax = calculateMonthlyTax(monthlyTaxBase);
+                const netAmount = monthlySalary - monthlyTax - monthlyDeductions;
+
+                // Update running totals
+                totalTax += monthlyTax;
+                totalNet += netAmount;
+                totalTaxBase += monthlyTaxBase;
+
+                // Initialize monthly breakdown table
+                const monthlyBreakdown = document.getElementById('monthlyBreakdown');
+                monthlyBreakdown.innerHTML = '';
+
+                // Calculate monthly breakdown
+                for (let i = 0; i < 12; i++) {
+                    const date = new Date(2024, i, 1);
+                    
+                    // Add row to table
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="p-2">${date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long' })}</td>
+                        <td class="p-2">${Math.round(personalExemption).toLocaleString('ar-EG')}</td>
+                        <td class="p-2">${Math.round(monthlyTaxBase).toLocaleString('ar-EG')}</td>
+                        <td class="p-2">${Math.round(monthlyTax).toLocaleString('ar-EG')}</td>
+                        <td class="p-2">${Math.round(netAmount).toLocaleString('ar-EG')}</td>
+                    `;
+                    monthlyBreakdown.appendChild(row);
+                }
+
+                // Update insurance details
+                document.getElementById('insuranceSalary').textContent = `${Math.round(insuranceSalary).toLocaleString('ar-EG')} (سنوي: ${Math.round(insuranceSalary * 12).toLocaleString('ar-EG')})`;
+                document.getElementById('employerShare').textContent = `${Math.round(employerShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employerShare * 12).toLocaleString('ar-EG')})`;
+                document.getElementById('employeeShare').textContent = `${Math.round(employeeShare).toLocaleString('ar-EG')} (سنوي: ${Math.round(employeeShare * 12).toLocaleString('ar-EG')})`;
+
+                // Update monthly and annual totals
+                document.getElementById('monthlyTotal').textContent = Math.round(monthlySalary - monthlyTax).toLocaleString('ar-EG');
+                document.getElementById('annualTotal').textContent = Math.round((monthlySalary - monthlyTax) * 12).toLocaleString('ar-EG');
+
+                // Update totals with animation
+                const elements = {
+                    totalPersonalExemption: personalExemption * 12,
+                    totalTaxBase: totalTaxBase,
+                    totalTax: totalTax,
+                    totalNet: totalNet
+                };
+
+                Object.entries(elements).forEach(([id, value]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.style.transition = 'all 0.3s ease-out';
+                        element.style.transform = 'scale(1.1)';
+                        element.textContent = Math.round(value).toLocaleString('ar-EG');
+                        setTimeout(() => {
+                            element.style.transform = 'scale(1)';
+                        }, 300);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error in calculation:', error);
+                alert('حدث خطأ في الحساب. يرجى التحقق من المدخلات');
+            }
+        }
+    </script>
+</body>
+</html>
